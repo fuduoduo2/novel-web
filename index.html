@@ -1,0 +1,1924 @@
+<!DOCTYPE html>
+<html data-page-node-id="PDrtEfRo2slnnf6p8TCJCQ" lang="zh-CN">
+<head data-page-node-id="hIoEHWEvuIQTcJGZ5FbShZ">
+<script data-page-node-id="Fy7KAtyaO4hNXEPQxluGIy" onerror="this.remove()" src="/page/page_comm/inject.js"></script>
+  <meta data-page-node-id="SWvNAcSVmZ8NpxYNkXscUF" charset="utf-8">
+  <meta data-page-node-id="0fCVDHVt9PUmza7snRRQoU" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1" name="viewport">
+  <title data-page-node-id="RiyJ5NqpUXYoJt61fvRvz6" data-pnid-children="70YY3l1AKWXkNaLDzBGC6P">小说续写助手</title>
+  <meta data-page-node-id="eGYUnArc1rIMRi04by696y" content="yes" name="apple-mobile-web-app-capable">
+  <meta data-page-node-id="2yqD1oulz9epV1XBcbmDZh" content="yes" name="mobile-web-app-capable">
+  <meta data-page-node-id="jmEUtnwQeiyEtLg5MX4Tpx" content="black-translucent" name="apple-mobile-web-app-status-bar-style">
+  <meta data-page-node-id="wSzze2ps8xmqmRcyE7wKJc" content="续写助手" name="apple-mobile-web-app-title">
+  <link data-page-node-id="GjxesjE2boZ7yVdpH8qQ4r" href="assets/apple-touch-icon.png" rel="apple-touch-icon">
+  <link data-page-node-id="4I5vpLZGg4DRaOi8SJ4itd" href="manifest.webmanifest" rel="manifest">
+  <link data-page-node-id="0JIHyCJlISwNSteQZXbhCI" href="assets/icon-192.png" rel="icon">
+  <style data-page-node-id="EkKWywcTZcRgGLq5G6B7TV" data-pnid-children="ZQzCjdWc0n99YC7LY0hrfi">
+:root {
+  --bg: #f4f5fb;
+  --surface: #ffffff;
+  --surface-2: #f0ebff;
+  --text: #1c1d29;
+  --text-soft: #6b6f86;
+  --primary: #6a11cb;
+  --primary-2: #2575fc;
+  --border: #e6e6f0;
+  --danger: #e5484d;
+  --ok: #2e9e5b;
+  --shadow: 0 6px 24px rgba(40, 30, 90, .08);
+}
+
+[data-theme="dark"] {
+  --bg: #12131c;
+  --surface: #1b1d2a;
+  --surface-2: #23263a;
+  --text: #eef0fa;
+  --text-soft: #9aa0bd;
+  --border: #2c2f44;
+  --shadow: 0 6px 24px rgba(0, 0, 0, .35);
+}
+
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", "Segoe UI", Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  font-size: 15px;
+  padding-bottom: 64px; /* 给底部 tab 留位 */
+}
+.app { max-width: 540px; margin: 0 auto; min-height: 100vh; }
+
+header.topbar {
+  position: sticky; top: 0; z-index: 20;
+  background: linear-gradient(135deg, var(--primary), var(--primary-2));
+  color: #fff; padding: 14px 16px;
+  display: flex; align-items: center; gap: 10px;
+  padding-top: calc(14px + env(safe-area-inset-top));
+}
+.topbar h1 { font-size: 17px; margin: 0; font-weight: 700; }
+.topbar .sub { font-size: 12px; opacity: .85; }
+
+.page { padding: 14px; display: none; }
+.page.active { display: block; }
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 14px;
+  margin-bottom: 12px;
+  box-shadow: var(--shadow);
+}
+.card h3 { margin: 0 0 8px; font-size: 15px; }
+.card .meta { color: var(--text-soft); font-size: 12px; }
+
+.row { display: flex; gap: 8px; align-items: center; }
+.row.wrap { flex-wrap: wrap; }
+.spread { justify-content: space-between; }
+.grow { flex: 1; }
+
+.btn {
+  appearance: none; border: 1px solid var(--border);
+  background: var(--surface); color: var(--text);
+  border-radius: 10px; padding: 9px 14px; font-size: 14px;
+  cursor: pointer; transition: .15s; font-weight: 600;
+}
+.btn:active { transform: scale(.97); }
+.btn.primary {
+  background: linear-gradient(135deg, var(--primary), var(--primary-2));
+  color: #fff; border: none;
+}
+.btn.ghost { background: transparent; }
+.btn.danger { color: var(--danger); border-color: var(--danger); }
+.btn.sm { padding: 6px 10px; font-size: 13px; }
+.btn:disabled { opacity: .5; cursor: not-allowed; }
+
+label.field { display: block; margin-bottom: 12px; }
+label.field .lbl { display: block; font-size: 13px; color: var(--text-soft); margin-bottom: 5px; font-weight: 600; }
+input, select, textarea {
+  width: 100%; padding: 10px; border-radius: 10px;
+  border: 1px solid var(--border); background: var(--bg); color: var(--text);
+  font-size: 14px; font-family: inherit;
+}
+textarea { resize: vertical; min-height: 90px; line-height: 1.7; }
+input:focus, select:focus, textarea:focus { outline: 2px solid var(--primary); outline-offset: 0; }
+
+.chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.chip {
+  padding: 6px 12px; border-radius: 999px; border: 1px solid var(--border);
+  background: var(--surface); font-size: 13px; cursor: pointer; user-select: none;
+}
+.chip.on { background: var(--surface-2); border-color: var(--primary); color: var(--primary); font-weight: 700; }
+
+.tabbar {
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 30;
+  display: flex; background: var(--surface);
+  border-top: 1px solid var(--border);
+  padding-bottom: env(safe-area-inset-bottom);
+  max-width: 540px; margin: 0 auto;
+}
+.tabbar .tab {
+  flex: 1; text-align: center; padding: 8px 4px 6px; font-size: 11px;
+  color: var(--text-soft); cursor: pointer;
+}
+.tabbar .tab .ic { font-size: 20px; display: block; line-height: 1.1; }
+.tabbar .tab.on { color: var(--primary); font-weight: 700; }
+
+/* 桌面端加宽布局（手机端不受影响） */
+@media (min-width: 768px) {
+  body { font-size: 16px; }
+  .app { max-width: 960px; }
+  .tabbar { max-width: 960px; }
+  .modal .panel { width: min(94%, 760px); }
+  .modal .panel textarea { min-height: 420px !important; }
+}
+
+.empty { text-align: center; color: var(--text-soft); padding: 40px 16px; }
+.empty .big { font-size: 40px; }
+
+.chapter-item {
+  border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px;
+  margin-bottom: 8px; background: var(--surface); cursor: pointer;
+}
+.chapter-item .t { font-weight: 600; font-size: 14px; }
+.chapter-item .c { color: var(--text-soft); font-size: 12px; }
+
+.badge { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 999px; background: var(--surface-2); color: var(--primary); margin-left: 6px; }
+
+.model-preset { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+.model-preset .chip { background: var(--surface-2); }
+
+#writeOutput {
+  white-space: pre-wrap; line-height: 1.9; font-size: 15px;
+  border: 1px dashed var(--border); border-radius: 10px; padding: 12px; min-height: 120px;
+  background: var(--bg);
+}
+.progress { height: 4px; background: var(--border); border-radius: 4px; overflow: hidden; margin: 8px 0; }
+.progress > i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--primary), var(--primary-2)); transition: width .2s; }
+
+.toast {
+  position: fixed; left: 50%; bottom: 80px; transform: translateX(-50%);
+  background: rgba(20,20,30,.92); color: #fff; padding: 10px 16px; border-radius: 10px;
+  font-size: 13px; z-index: 100; max-width: 90%; opacity: 0; transition: .2s; pointer-events: none;
+}
+.toast.show { opacity: 1; }
+
+.hint { font-size: 12px; color: var(--text-soft); margin: 4px 0 0; }
+.kbd { font-family: ui-monospace, Menlo, monospace; background: var(--surface-2); padding: 1px 6px; border-radius: 6px; font-size: 12px; }
+
+/* 剧情要求核对清单 */
+.req-title { font-weight: 600; font-size: 13px; margin-bottom: 8px; color: var(--text); }
+.req-item { display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-start; padding: 7px 10px; border-radius: 8px; margin-bottom: 6px; font-size: 13px; border: 1px solid var(--border); }
+.req-item.ok { background: rgba(40,170,90,.10); border-color: rgba(40,170,90,.40); }
+.req-item.no { background: rgba(220,70,70,.10); border-color: rgba(220,70,70,.40); }
+.req-badge { flex: 0 0 auto; font-size: 14px; line-height: 1.3; }
+.req-text { flex: 1 1 auto; font-weight: 500; }
+.req-note { flex: 1 1 100%; color: var(--text-soft); font-size: 12px; margin-top: 2px; }
+.fb-note { font-size: 14px; font-weight: 500; margin-top: 6px; line-height: 1.5; }
+.badge.on { background: rgba(40,170,90,.15); color: #2aaa5a; }
+
+.modal { position: fixed; inset: 0; z-index: 50; display: none; }
+.modal.show { display: block; }
+.modal .mask { position: absolute; inset: 0; background: rgba(0,0,0,.5); }
+.modal .panel { position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%); width: min(92%, 460px); max-height: 86vh; overflow: auto; background: var(--surface); border-radius: 16px; padding: 16px; box-shadow: var(--shadow); }
+
+/* 登录保护 */
+.lock { position: fixed; inset: 0; z-index: 999; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, var(--primary), var(--primary-2)); padding: 20px; }
+.lock.hide { display: none; }
+.lock .box { width: min(92%, 380px); background: var(--surface); border-radius: 18px; padding: 24px 22px; box-shadow: var(--shadow); }
+.lock h2 { margin: 0 0 4px; font-size: 20px; color: var(--text); }
+.lock .sub { font-size: 13px; color: var(--text-soft); margin: 0 0 18px; }
+.lock .field { display: block; margin-bottom: 12px; }
+.lock .field span { display: block; font-size: 13px; margin-bottom: 6px; color: var(--text-soft); }
+.lock input[type=text], .lock input[type=password] { width: 100%; padding: 11px 12px; border: 1px solid var(--border); border-radius: 10px; font-size: 15px; background: var(--surface); color: var(--text); }
+.lock .btn { width: 100%; padding: 12px; border: 0; border-radius: 10px; font-size: 15px; font-weight: 700; color: #fff; background: linear-gradient(135deg, var(--primary), var(--primary-2)); cursor: pointer; }
+.lock .err { color: var(--danger); font-size: 13px; min-height: 18px; margin-top: 8px; }
+.lock .rem { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-soft); margin-top: 10px; }
+
+</style>
+</head>
+<body data-page-node-id="vLnDWx7ukREMXHGcsB2cF9">
+  <!--pnid:igdbSIbJIrhd5gocA11dBv--><!-- 登录保护：仅限本人使用 -->
+  <div data-page-node-id="Mz7sVXt6mWfzZ4QKqnmpkP" class="lock" id="lock">
+    <div data-page-node-id="0EgWJmsYIrInncZ0WmWHAl" class="box">
+      <h2 data-page-node-id="jnqGYYcgNiKD0RE6rdq6s5"><!--pnid:fCom3YaGey9Vv6LbgJKbQv-->🔒 请先登录</h2>
+      <p data-page-node-id="soykgYEOuhZB7SNfn7qlVz" class="sub"><!--pnid:9nbQxYIQCESwYbNk6I71ca-->小说续写助手 · 仅限本人使用</p>
+      <label data-page-node-id="ZbmXfD7JQc8XKidC97TLSI" class="field"><span data-page-node-id="aeqAT5g2av2GArG3qmkgkq"><!--pnid:w2NPxP4TCbjohICWChgtX2-->用户名</span><input data-page-node-id="WQrjPqtRdh9d56nQDtZ0V3" autocomplete="username" id="loginUser" placeholder="请输入用户名" type="text"></label>
+      <label data-page-node-id="UypnltUW65Z2nNl6XteDCu" class="field"><span data-page-node-id="FGYtMLGV90xEFtaRMANqd6"><!--pnid:iG7Qd9JwflZeca486KvwZ6-->密码</span><input data-page-node-id="YDHXZGzUxkih8xhMtfMz4l" autocomplete="current-password" id="loginPass" placeholder="请输入密码" type="password"></label>
+      <button data-page-node-id="7pshoRRyE859OhzuVZaXui" class="btn" id="loginBtn" type="button"><!--pnid:u40GrPddoUWFD3OdDfYxU1-->登 录</button>
+      <div data-page-node-id="1LZupxmijasEnsBe9b8f5P" class="err" id="loginErr"></div>
+      <label data-page-node-id="NyvMv1LETIbW4DmTYIKjLR" class="rem"><input data-page-node-id="3eF3yWo4tTdbtlz7CNmJpt" checked id="loginRem" type="checkbox"><!--pnid:AaLawTNmJ0mNMu908YdnWQ--> 记住本设备（7 天内免登录）</label>
+    </div>
+  </div>
+
+  <div data-page-node-id="2fzBP3yXgCWeh9SNYpiOeH" class="app">
+    <header data-page-node-id="KvBdmpnQ4FwMNJ2S8mR81f" class="topbar">
+      <div data-page-node-id="fsm7oBhorMhWbI7McfBTrI">
+        <h1 data-page-node-id="hofNIw78kkvaMfPDuH2dbz"><!--pnid:gF3Qn8hBAWdAatZzcvmDDr-->小说续写助手</h1>
+        <div data-page-node-id="FedKZ124wMaKo8qilV0Ei4" class="sub"><!--pnid:Rkkc0YKWz0S3vlZZ3heeTL-->上传原作 · 调用大模型 · 模仿续写下一章</div>
+      </div>
+    </header>
+
+    <!--pnid:rweHQ3CdckXVrHTezYYMNq--><!-- 作品 -->
+    <section data-page-node-id="RlL7Gp1APEI6jyvmTmiLG2" class="page active" id="page-works">
+      <div data-page-node-id="9mv1vSBnQ7a6KlocUOof0i" class="card">
+        <h3 data-page-node-id="nDBwlw5OKAYnXuQF06C9T3"><!--pnid:VzTN0S0PIMSDravSPlBLVd-->上传 / 新建作品</h3>
+        <label data-page-node-id="N9tsyidbJbYmKoiIzkZ37u" class="field"><span data-page-node-id="JN07iuj202q8P1gyedXuCT" class="lbl"><!--pnid:qdDahxjutn38W1K72Q9FZc-->从文件导入（.txt / .md）</span>
+          <input data-page-node-id="ePJho0xF7lcPZMjOvEscyj" accept=".txt,.md,text/plain" id="fileInput" type="file"></label>
+        <label data-page-node-id="qiUqDSytAEEKMe8iTVoYKu" class="field"><span data-page-node-id="9qNFpShK7BCIHVMU3lSxn8" class="lbl"><!--pnid:xIb6Ne73sq7H8luGXqEDAU-->或粘贴正文</span>
+          <textarea data-page-node-id="05JeJEfQUUxh6zOE8HS2DK" id="pasteText" placeholder="把小说原文粘贴到这里……（支持整本或多章）"></textarea></label>
+        <div data-page-node-id="UuF0umEbusFGTdjqdm7am1" class="row">
+          <label data-page-node-id="6JvCglfAjY37GzhRMoXKbF" class="field grow"><span data-page-node-id="N09jd8RsGnNUub5Ej50BCS" class="lbl"><!--pnid:tBUJ6F5fUPDBgvaulwPCsY-->书名</span><input data-page-node-id="6A3uREzOWgt556Tl8o189m" id="inTitle" placeholder="未命名作品"></label>
+          <label data-page-node-id="QWCw23mWfSFlHFY7biLg2N" class="field grow"><span data-page-node-id="UqbuiHjZwVbHgNeQN6Bo3A" class="lbl"><!--pnid:NLUI4S9U4hC3enEARB6j7f-->作者</span><input data-page-node-id="CiapNcKHaH8t5HZ3ulvvGc" id="inAuthor" placeholder="佚名"></label>
+        </div>
+        <div data-page-node-id="M8mudSAppd39SFcjRrECjG" class="row">
+          <button data-page-node-id="mrk6z7xxbikhdzWzQm6Z9b" class="btn primary grow" id="btnAdd"><!--pnid:pXTdu70ZIn1vdijV0A865W-->解析并存入</button>
+          <button data-page-node-id="vkEdxQPg8W3rsadOGxCy5z" class="btn" id="btnClearPaste"><!--pnid:YPbsbV4nkLKjW7qU1WyvaI-->清空</button>
+        </div>
+        <p data-page-node-id="mIdDlBoSYVhm0r1GxiEAcc" class="hint"><!--pnid:vMg4xDC27Qw9KH06ByBkCN-->自动按「第X章 / 回 / 卷」「Chapter X」「序章 / 楔子 / 番外」切分章节。</p>
+      </div>
+      <div data-page-node-id="KyaoR9bse7lbnFprIvnfEZ" id="worksList"></div>
+    </section>
+
+    <!--pnid:Vtp8yi6wOGbsTaSSgPPQRz--><!-- 续写 -->
+    <section data-page-node-id="rkJf2dlMbkbkHf0egQJ5Uj" class="page" id="page-write">
+      <div data-page-node-id="7XdoA5EfpCZgoPGp07QP0i" class="empty" id="writeEmpty" style="display:none">
+        <div data-page-node-id="BmXadyJS4crKaWXNCbrCYU" class="big"><!--pnid:E5BhAsRtPENR11EWtbW25D-->✍️</div><p data-page-node-id="vfZ1kb4JhhJXjomdXiyvzo"><!--pnid:9FDBtTvmhwaR6VsyO6hOfQ-->还没有作品</p><p data-page-node-id="9sundWT2OevAdYNcSMyXOa" class="hint"><!--pnid:Ntuwxr3hUnY1dV64BR6wTj-->请先到「作品」页上传小说</p>
+      </div>
+      <div data-page-node-id="eh6ZDZrIksHBXZVOqla90A" id="writeForm">
+        <div data-page-node-id="xVXNxJlnU0KsY438iN94fL" class="card">
+          <h3 data-page-node-id="knJ8guhbZYqJyionQEX4dw"><!--pnid:kmDNLM28JY9E49Kc5FQE4p-->续写设置</h3>
+          <label data-page-node-id="f54USFNy97JH7O2v9d5VYh" class="field"><span data-page-node-id="aJsNlmCW7gSLXOZtSRipPv" class="lbl"><!--pnid:G0ve0aNrIkzEggfThBrjPR-->选择作品</span><select data-page-node-id="ed8Ah0XJV6mU6KAjm3c3oi" id="selWork"></select></label>
+          <label data-page-node-id="w44HBokIDq3oyKxxHticFB" class="field"><span data-page-node-id="dHYRfgvCESDg0Xf4rFnrJb" class="lbl"><!--pnid:GwXm4qHN6AdRzPNHL8Dqeh-->基于哪一章续写（默认最后一章）</span><select data-page-node-id="WdbDksKnQmvDl6ge5MvqZV" id="selChapter"></select></label>
+          <label data-page-node-id="B8ZqC4zICODy29gvZjOeSB" class="field"><span data-page-node-id="68tVNO9xA0rWIwJtFTCWTo" class="lbl"><!--pnid:jfOAyLnuMdwcRXycQH4RTK-->调用模型</span><select data-page-node-id="C5zrK3d2r8WpTAXhKskQYP" id="selModel"></select></label>
+          <label class="field"><span class="lbl">风格参考作品（可选）</span><select id="selStyleWork"></select>
+            <div class="hint">选另一本小说作为「文风范本」：用它的笔调续写当前作品，但内容 / 人物 / 情节仍属于当前作品。留空则只模仿当前作品自身文风。</div></label>
+          <label data-page-node-id="okvpvzuzW09k50vfbEjD3B" class="field"><span data-page-node-id="1JqSEyud54luC5mgJ1AXzL" class="lbl"><!--pnid:urivSY4muaeWKnkbUlNCSl-->目标篇幅（字）</span><input data-page-node-id="L57jWQ77LSHBdmnvGXA97M" id="inChars" min="200" step="100" type="number">
+            <div data-page-node-id="aesCoNzmHJ4FVf4iomfXgZ" class="hint"><!--pnid:7qShFFu3FT2chcbNx3kgZr-->较大篇幅（如几万字）会自动分多段接力续写，生成时请保持本页面在前台，切走网站可能导致暂停（返回后会自动重连）。</div></label>
+          <label data-page-node-id="qVG86QLy9OAs5vZSTf6CJT" class="field"><span data-page-node-id="chFTuh2XIum1edFV8mroOq" class="lbl"><!--pnid:rZv2ZRFr1hr37lj5EkID9T-->风格模仿强度</span>
+            <div data-page-node-id="mvOLqFh18mwowc4E14YHWH" class="chips" id="chipStrength">
+              <span data-page-node-id="DQGDFJu6wu0QfkQCVJbCOa" class="chip" data-v="high"><!--pnid:KvamDWMjmtnbC9bPLAihHm-->高强度（难以分辨）</span>
+              <span data-page-node-id="WQU290Wumps9O6e3r4An1o" class="chip" data-v="medium"><!--pnid:ErWwDNQCvfkAABxUFZRMZk-->中等（可润色）</span>
+            </div></label>
+          <label data-page-node-id="OBSFvS02gNr4J73rQMPkmp" class="field"><span data-page-node-id="G6foX7x4vaQBHXs7kiUfKx" class="lbl"><!--pnid:ZxKmEq0NjWMQUDfsWMEURY-->叙事视角约束</span>
+            <div data-page-node-id="zUBJj1DcQK9yJUC985Efd6" class="chips" id="chipPOV">
+              <span data-page-node-id="xlRPslvW8n0YsgnNPkiW8W" class="chip" data-v="auto"><!--pnid:unOUtoQAYwOCFaZFNuyqlN-->保持原文</span>
+              <span data-page-node-id="FIRoANBSU4zcM5kpusJJZq" class="chip" data-v="first"><!--pnid:bmTMvk6C6LLH1KfgCHlYy5-->第一人称</span>
+              <span data-page-node-id="7GgItlJKEDSTWyDDCDDdEF" class="chip" data-v="third"><!--pnid:uEAHEIpkrJrH9fFkLUh2gp-->第三人称</span>
+            </div></label>
+          <label data-page-node-id="vMGsGoDRyjCGgYd2fX4uvv" class="field"><span data-page-node-id="1z1l661rFqzFjLOcejKtxU" class="lbl"><!--pnid:138xCPvElkAFpNrk057Cj6-->章末留钩子</span>
+            <div data-page-node-id="xLV1Z5KcHRSKWfcqSx077L" class="chips" id="chipHook"><span data-page-node-id="xecsH2oDPPuI0od2FNbiFN" class="chip" data-v="1"><!--pnid:kqPfB6aypN3k9Bm2Q3VmNf-->强制留钩子</span></div></label>
+          <label data-page-node-id="DuG4PSrMnpmLt9BbaLeEzl" class="field"><span data-page-node-id="wb5sRKUAmVuWZnSmQ23Cbo" class="lbl"><!--pnid:OvEWrNxJxbZTW0VDobIGe5-->采样温度：<span data-page-node-id="6hNqHyfFewFvrEB4PPai2a" id="tempVal"><!--pnid:4PEfDAfYiYEQ72vveV3Mzf-->0.85</span></span>
+            <input data-page-node-id="sudxrBbAPYP7JzNIyK9lmq" id="inTemp" max="1.5" min="0" step="0.05" type="range" value="0.85"></label>
+          <label data-page-node-id="yazGxbwLX9JRFfsnrsibdV" class="field"><span data-page-node-id="hgMjwuGE292k8LE1RYRYfA" class="lbl"><!--pnid:Hbiqrl8D17BZWfM1KhFqMy-->喂给模型的样本章数</span><input data-page-node-id="GhSeNXlL9ffuRjG0UdLwii" id="inSample" max="80" min="1" type="number"></label>
+          <label data-page-node-id="MYMfx1BTQkMFYbIrrVePxa" class="field"><span data-page-node-id="mV47QeFZkbovjTIgz21VoI" class="lbl"><!--pnid:KsWQkdzFuqkzPPlCD5yAWS-->额外要求（可选）</span>
+            <textarea data-page-node-id="OPA0AounTjPzgJhDFvdX9s" id="inExtra" placeholder="例如：这一章重点推进感情线；不要引入新配角；保持冷峻文风……"></textarea></label>
+          <label data-page-node-id="M28wH9clYUQVCkCAkORJ7J" class="field"><span data-page-node-id="RnrUnFtWND7oHse1lmIkdd" class="lbl"><!--pnid:yxgIcEtAKg56C96t1IN2JT-->剧情要求（每行一条，生成后自动逐条核对是否写进续写）</span>
+            <textarea data-page-node-id="tkTA2FnDMSYfTyrDpv7CZM" id="inReq" placeholder="每行一条具体事件（谁+发生什么），例如：&#10;主角在密道发现身世秘密&#10;反派当众揭穿配角的背叛"></textarea></label>
+        </div>
+        <div data-page-node-id="aMAuiIswTl1zYkLO0p3ZzF" class="card">
+          <div data-page-node-id="2uGnBBpQnOa7fsUb49soFx" class="row spread">
+            <button data-page-node-id="yQRc2AbUWmSkCa3Ix9ZmS7" class="btn primary grow" id="btnWrite"><!--pnid:YfFlmvy1FmZI7pYBZev92Z-->开始续写</button>
+            <button data-page-node-id="Zbswik2WiMzrB4fuzARCmE" class="btn danger" disabled id="btnStop"><!--pnid:q6nq6I5qF84xPZarxpCkeN-->停止</button>
+          </div>
+          <div data-page-node-id="1HLCIr1IjTk814lRdebNhz" class="progress"><i data-page-node-id="gYr9WCrozpakDn8pif1ZkG" id="progBar"></i></div>
+          <label data-page-node-id="J9lYQ8GSEJM4rtQLNYlEDT" class="field" style="margin-top:8px"><span data-page-node-id="H5L2GvD0F41ZvDZBkK93If" class="lbl"><!--pnid:xuv8SQPGVA3zunCpSjZcQE-->续写结果（可编辑）</span>
+            <textarea data-page-node-id="jqYKTaeE48zhq17WPmvj2h" disabled id="writeOutput" placeholder="点击「开始续写」后，结果会在这里流式显示……" style="min-height:220px"></textarea></label>
+          <label data-page-node-id="ZiJ3TxINUDHXsJSrTuOxpQ" class="field"><span data-page-node-id="ZbAr6RULpi8ta8uJssuxmX" class="lbl"><!--pnid:kr7YqV3FeczYN5hZ93NKXQ-->新章节标题</span><input data-page-node-id="IOwWyKvM3rZJpl5To0azYq" id="inNewTitle" placeholder="自动推断，可修改"></label>
+          <div data-page-node-id="20STREgZjyJjrOPwOy2AYY" class="row">
+            <button data-page-node-id="5lDi34PWSCxV9FXOFWvncb" class="btn primary" disabled id="btnAdopt"><!--pnid:oK587NGS5ILPyCCojhtBiF-->采用并追加</button>
+            <button data-page-node-id="lKGQBnGMAhk5OJV8mBi5MR" class="btn" disabled id="btnSaveDocx"><!--pnid:Kbc5d9CyeNc6DKHuzbHYDF-->导出续写</button>
+            <button data-page-node-id="AsC94LHDUO4PyZ7aHJ7LRL" class="btn" disabled id="btnRedo"><!--pnid:5hFM5sZTgTqyZvWmmAxEys-->重新生成</button>
+            <button data-page-node-id="FrANUsF0XdUtCuprrwhcRO" class="btn ghost" disabled id="btnDiscard"><!--pnid:ucy0612VCoEHmrSVfHyQUs-->丢弃</button>
+            <button data-page-node-id="jIkxA1RNGDSx49LgyfM87v" class="btn" disabled id="btnRecordFix"><!--pnid:k5WtUDbI6JebIeIo8qTOb5-->记录本次纠错</button>
+            <button data-page-node-id="zmlVE3RLsAPmx4VKtpewGx" class="btn" disabled id="btnAiCritique"><!--pnid:3edZlGuQYiLIRzzKPOG0gv-->AI 找问题</button>
+            <button data-page-node-id="1T29CFnCdgUIcoC8BG2uBl" class="btn" disabled id="btnExportAll"><!--pnid:4jjvKYIWht7gtGMsI6tsWW-->导出整本</button>
+          </div>
+          <div data-page-node-id="KYQSZPnqrPDG7RpMpAUQ4S" class="card" id="reqCheckBox" style="display:none; margin-top:12px"></div>
+        </div>
+      </div>
+    </section>
+
+    <!--pnid:q6n4Qq0CBDG5z9ZkJcNlqj--><!-- 模型 -->
+    <section data-page-node-id="UDaCEaMu1dv6c2xkxRDZ34" class="page" id="page-models">
+      <div data-page-node-id="To56mV9IPLhSyt3r0eJ8OX" class="card">
+        <h3 data-page-node-id="DyKdjAcSGSCIUu1JQJ3hNP"><!--pnid:eZESsF6jQXYhd0Xbf0NfBS-->添加模型</h3>
+        <div data-page-node-id="oxtf6FbUL62wPuMbPuUK2U" class="model-preset">
+          <span data-page-node-id="ESyoCUAwUQEENRsL0c6yRd" class="chip" data-preset="deepseek"><!--pnid:pQgk7s1ppH342peOON2QHA-->DeepSeek</span>
+          <span data-page-node-id="l2PzE97ekWFLIsieJqD82V" class="chip" data-preset="zhipu"><!--pnid:rH4GfZ5Dw2mwTczIFYa4sp-->智谱 GLM</span>
+          <span data-page-node-id="k8rxwQz0PmyysVaSIAUkyq" class="chip" data-preset="kimi"><!--pnid:rcuC8qvN3pMyIu3ATygKsz-->Kimi</span>
+          <span data-page-node-id="eCzCNUCRR760QxM7iUPDLY" class="chip" data-preset="mimo"><!--pnid:7ufHA1Mz4atcUnPXMVXdtr-->小米 MiMo</span>
+          <span data-page-node-id="EjWXdf3kVWx4IrLpk8UyJ7" class="chip" data-preset="custom"><!--pnid:M1fcaFArelxWi7fI7Yo8aP-->自定义兼容端点</span>
+        </div>
+        <button data-page-node-id="QsMSwSoqgqPhHdxd79KPC7" class="btn primary" id="btnAddModel"><!--pnid:skVlLNa0xD88L5Hyyc5xlG-->＋ 新增配置</button>
+      </div>
+      <div data-page-node-id="tsOrdCNh16jMUL4mGXqmw0" id="modelsList"></div>
+      <p data-page-node-id="a2f5ButwqVChoiL1CYp1UH" class="hint"><!--pnid:4mtP6xZpb65XNAdm6kukLV-->所有 API Key 仅保存在你本机浏览器，不会上传到任何服务器。各家均为 OpenAI 兼容接口。</p>
+    </section>
+
+    <!--pnid:5ILYD8MYb1S2MtTbcP9Bm4--><!-- 设置 -->
+    <section data-page-node-id="Boy0N7KBYg3eHXlwIzd61m" class="page" id="page-settings">
+      <div data-page-node-id="e1On6yp0gTzZw94bzUKuXh" class="card">
+        <h3 data-page-node-id="xx7rqb7OrJyEISqIrQDF5b"><!--pnid:3Tgpd8fqs4coteDz72uCA0-->默认续写参数</h3>
+        <label data-page-node-id="6baK2NyCZh3WFjAxUuDd26" class="field"><span data-page-node-id="4FGW0iWjEwDPxBqLSmvCN7" class="lbl"><!--pnid:cnmdLOwHLOKmM5SGOG5Zko-->主题</span>
+          <select data-page-node-id="ZdZKwMzQvXl25BFYf5HaFs" id="setTheme">
+            <option data-page-node-id="0CKg4zOiE9A2OM3a7TmvCq" value="auto"><!--pnid:7D2NZz2P3312DfpPvMM1nH-->跟随系统</option>
+            <option data-page-node-id="j3jDKAN1OWlmRbyS3odNqa" value="light"><!--pnid:Pv116Pi4KQx5N2KYWoKiai-->浅色</option>
+            <option data-page-node-id="mzeUPEMLYYq9GmhdEAY4T0" value="dark"><!--pnid:TVHXRV7pbVm4YtV35qUCLh-->深色</option>
+          </select></label>
+        <label data-page-node-id="cSL4fzlRM6MZlim3Q3MVqz" class="field"><span data-page-node-id="cerVusfRroGg7JWorSOPnf" class="lbl"><!--pnid:owGU88I3XvCdD6O4x6BI1M-->默认目标篇幅（字）</span><input data-page-node-id="bC3Kk49DfEm3AfhMN3DR7s" id="setChars" min="200" step="100" type="number"></label>
+        <label data-page-node-id="rdSyEgMq29fN0XuuYEk5G9" class="field"><span data-page-node-id="PfKWngalw88RNLTSNCvIyp" class="lbl"><!--pnid:EfMZSQkNIDuwbLgp92bSRl-->默认样本章数</span><input data-page-node-id="F17Fsd03g88Rd1iOfkbxXP" id="setSample" max="80" min="1" type="number"></label>
+        <label data-page-node-id="ilZIkDA3BuA4Mgqs4Yjvj1" class="field"><span data-page-node-id="hGjZPZWbU4cit4SzECNX1J" class="lbl"><!--pnid:zcoWBTSKXQiJLoFGSzGeTk-->默认风格强度</span>
+          <div data-page-node-id="mydyUbcqUayRHbhVE506XA" class="chips" id="setStrength">
+            <span data-page-node-id="uytXxFMXppdpvFOC2Dt7Er" class="chip" data-v="high"><!--pnid:Rhnr1HrELIZkqhpHuk8mDn-->高强度</span>
+            <span data-page-node-id="904L65yKuEUTsAsAvpBBeM" class="chip" data-v="medium"><!--pnid:KJQQ5kbanCUkJ9KfMpEjIt-->中等</span>
+          </div></label>
+        <label data-page-node-id="B5WdDjHCkeJ8M1MRCOqK7h" class="field"><span data-page-node-id="opvPHwwDFYlfJ7cmgurTK5" class="lbl"><!--pnid:BeDeLLgvc07NtdVYYuYmIO-->默认叙事视角</span>
+          <div data-page-node-id="nrtW1pDK5NYd6qWg3nnYHT" class="chips" id="setPOV">
+            <span data-page-node-id="BJ30gBOcqs6vI58eNeHbYZ" class="chip" data-v="auto"><!--pnid:j1b8gaFDnz1gmD2CtfILsf-->保持原文</span>
+            <span data-page-node-id="r2JuhIT50xQxci0xDNrQEJ" class="chip" data-v="first"><!--pnid:q41HCpGkX8x8pfOpwK0Vw5-->第一人称</span>
+            <span data-page-node-id="ExesFSs8wFqABWv8oFimyE" class="chip" data-v="third"><!--pnid:geeWHB6ejg0CbJ5ozB6U4X-->第三人称</span>
+          </div></label>
+        <label data-page-node-id="uz9Tum7Wbd2IMpynOcGq4m" class="field"><span data-page-node-id="tzEJHpnjDJwt0V5YVqOSKT" class="lbl"><!--pnid:yM7SuxHSPJXPaOELB3coU3-->默认采样温度：<span data-page-node-id="PwRosY32kTiVzhOsb04fke" id="setTempVal"><!--pnid:ZQhvMp6s3bCNnRVtnHVlTF-->0.85</span></span>
+          <input data-page-node-id="pPGAPFs871udvhxBlXWEUN" id="setTemp" max="1.5" min="0" step="0.05" type="range" value="0.85"></label>
+        <label data-page-node-id="dmGd4wQzdUbWRQn6jsrlFz" class="field"><span data-page-node-id="GzavnqU1ys0JjU7PYGdjz0" class="lbl"><!--pnid:Nhajx734lo2zhiSk1CnRkj-->默认章末留钩子</span>
+          <div data-page-node-id="ayr1T8DMQfFxROmLWMcZkH" class="chips" id="setHook"><span data-page-node-id="bZ5WNGP0uqFm1ZMju7XGVJ" class="chip" data-v="1"><!--pnid:iuKigjoX0Fagfg7ufeNFZM-->强制留钩子</span></div></label>
+        <label data-page-node-id="exnj5BbSCjSkhoKcPUde8M" class="field"><span data-page-node-id="yxOaHUNErSwHh7LrAsUYyv" class="lbl"><!--pnid:ljujm8nfFa0rWi6kwgZftd-->默认走本地代理（CORS）</span>
+          <div data-page-node-id="2OYxfRTa5jkImj2a2RtHhP" class="chips" id="setProxy"><span data-page-node-id="Tbat3kXQ5vn4gyDX2ZDNmE" class="chip" data-v="1"><!--pnid:UUIj6rEyd8d9WHK7nw28Rf-->启用</span></div></label>
+        <label data-page-node-id="7k9Dwh4NOZ2Yj2tHdgWZ81" class="field"><span data-page-node-id="J2Lxg1WWUlIqWJOFjr2pmd" class="lbl"><!--pnid:xNKWdN39aoJfkhY0VCAb8P-->采用前若被大幅修改，自动提示记录纠错经验</span>
+          <div data-page-node-id="C0Uz96ZkOOhzAvdI6tkGhb" class="chips" id="setAutoLearn"><span data-page-node-id="1E6teYoDxjv37enPmOL2MQ" class="chip" data-v="1"><!--pnid:NfRmaafsSEJOoSCjpjgfnU-->开启</span></div></label>
+      </div>
+      <div data-page-node-id="riIQ4uu9DdAGXRZsRmsFro" class="card">
+        <h3 data-page-node-id="u6IV3Pax6sqe6rHnctm9qX"><!--pnid:hL1LyAbsLyE1q3tayG6xGp-->数据与隐私</h3>
+        <div data-page-node-id="ZchlUZkd98Xm9Aut7PUrMZ" class="row wrap">
+          <button data-page-node-id="4CNvXg7reuX4o3DJ7tnlVF" class="btn" id="btnExport"><!--pnid:SwGQ92fXVfUKkEwq5MrtUA-->导出备份</button>
+          <button data-page-node-id="De0gzcnqsbhgOvQNN4IQCh" class="btn" id="btnImport"><!--pnid:OTEELIF7AUSVyFclZmKZ3Q-->导入备份</button>
+          <button data-page-node-id="zs9Z6iTshdNepN4x4sZv2A" class="btn danger" id="btnWipe"><!--pnid:bql3FASLbQaQr1isTU9V8i-->清空全部</button>
+          <button data-page-node-id="YoIAVNeGZFfNYqMccyPFHy" class="btn ghost" id="btnLogout"><!--pnid:LrsPaSRETgPCuw33mBwZFa-->退出登录</button>
+        </div>
+        <p data-page-node-id="OT20xEj8hCQ53yAzB9Rh61" class="hint"><!--pnid:J6cgN1HstHMtFaCGQLSBul-->作品与配置只存在本地浏览器。换设备 / 清缓存会丢失，记得定期导出备份。</p>
+      </div>
+      <div data-page-node-id="BIvSHlktXczog0AanWpq2i" class="card">
+        <h3 data-page-node-id="qErOV8kNMuqaKCbZ2MNXFY"><!--pnid:bzFqkOhqjfnIroF7neXys6-->关于</h3>
+        <p data-page-node-id="QWoZNwiQLTN5CLipRcoQLt" class="hint"><!--pnid:rOVzSaJ3E0ee9skvHvu1NS-->一个个人自用的网文续写工具：上传原作，调用你自己的大模型 API（DeepSeek / 智谱 / Kimi / 小米 MiMo 等），高度模仿原作的结构、风格与人物续写下一章。续写质量由提示词工程 + 你选用的模型共同决定。</p>
+      </div>
+      <div class="card">
+        <h3>☁️ GitHub 多设备同步</h3>
+        <p class="hint">把数据存到你自己的<strong>私有</strong> GitHub 仓库，手机 / 电脑连同一仓库即自动同步。需自备 GitHub 账号与私人访问令牌（PAT，权限勾 repo）。令牌只存在本机浏览器，不会写进文件、不会外泄。</p>
+        <label class="field"><span class="lbl">GitHub 用户名</span><input id="ghOwner" placeholder="你的登录名"></label>
+        <label class="field"><span class="lbl">仓库名（请设为私有）</span><input id="ghRepo" placeholder="例如 novel-writer-data"></label>
+        <label class="field"><span class="lbl">分支</span><input id="ghBranch" value="main"></label>
+        <label class="field"><span class="lbl">文件路径</span><input id="ghPath" value="novel-writer-data.json"></label>
+        <label class="field"><span class="lbl">私人访问令牌 PAT</span><input id="ghToken" type="password" placeholder="ghp_..."></label>
+        <div class="row wrap">
+          <button class="btn" id="ghSave">保存设置</button>
+          <button class="btn" id="ghTest">测试连接</button>
+          <button class="btn primary" id="ghPush">立即上传</button>
+          <button class="btn" id="ghPull">拉取合并</button>
+          <button class="btn ghost" id="ghAutoBtn">自动同步：开</button>
+        </div>
+        <p class="hint" id="ghStatus">未连接。</p>
+      </div>
+    </section>
+
+    <section data-page-node-id="nwgdVws0F1ZwUb3gzZLI5N" class="page" id="page-feedback">
+      <div data-page-node-id="xnXAhnzteZWoZM6OLpJdgF" class="card">
+        <div data-page-node-id="ySIqAeS6syiOya8xqnHp55" class="row spread">
+          <h3 data-page-node-id="5OLwssICAKxUqdN456XYDg"><!--pnid:XNU1sE5k9IYGtyAyk1Ytl1-->🧠 纠错记忆</h3>
+          <div class="row">
+            <button data-page-node-id="gQ7kVmT2nWqLpZ1cFbA9xy" class="btn sm" id="btnGeneralizeFb" title="把全部经验改写为不含具体人名的通用规则，换书也能用"><!--pnid:qLm2bN8wKpVxR7tY0cE3aD-->🧹 通用化全部</button>
+            <button data-page-node-id="960bQbGtmVdUPQRzUqS10i" class="btn primary sm" id="btnAddFeedback"><!--pnid:Tgz6na1JAqy1V3YD1pCEAl-->+ 新增经验</button>
+          </div>
+        </div>
+        <p data-page-node-id="57oTRlPJhBK5dXthnEwonj" class="hint"><!--pnid:voh9yQJbmDgFdfbzAlmY1t-->这里保存你手动"调试"续写后沉淀的经验。每条经验会作为硬性约束自动进入日后的生成提示词，让网页越用越聪明、不再重犯同类错误。经验应为通用写作规则（不含具体人名），换书也能用；若旧经验带了主人公名字，点「🧹 通用化全部」一键洗成通用版。数据存在本机浏览器，可随备份导出导入。</p>
+      </div>
+      <div data-page-node-id="Rw2O5ymxWM4vDtYX6WlEkO" id="feedbackList"></div>
+    </section>
+
+    <!--pnid:ND9XJQRJkT5knMDKVHByBF--><!-- 草稿箱 -->
+    <section data-page-node-id="DelV8zSi4MHBGlyZ7cj5Ub" class="page" id="page-drafts">
+      <div data-page-node-id="nJx6HUgOGObNdz1qSAdRvD" class="card">
+        <div data-page-node-id="7zE0jB5HaXbeGG6mCSHh7L" class="row spread">
+          <h3 data-page-node-id="fAEvXtVRu1GIg0qoLSOvmL"><!--pnid:0NWbaO57EKdsFilFuTelUv-->续写草稿箱</h3>
+          <button data-page-node-id="YWtUTsBpwdSTaPLWqSVm1d" class="btn danger sm" id="btnClearDrafts"><!--pnid:NJlcAW2F44pVBbe2W57Niy-->清空草稿箱</button>
+        </div>
+        <p data-page-node-id="npD5U4uXt9MYGjh5AltCer" class="hint"><!--pnid:yXYDg6alavVsftoIdLf19b-->每次在「续写」页点「导出 TXT」或「采用并追加」，本次续写内容都会自动存到这里，可随时调阅、复制、下载。数据存在本机浏览器。</p>
+      </div>
+      <div data-page-node-id="hmjohTP5avCFFVaFH5Uzb0" id="draftsList"></div>
+    </section>
+
+    <nav data-page-node-id="sNLxSVADTGoCEOcsHtdoFU" class="tabbar">
+      <div data-page-node-id="fCmR27yFXqTJvmD6NlqySu" class="tab on" data-tab="works"><span data-page-node-id="7Hh1Wesu6LYlDwStjMctTa" class="ic"><!--pnid:LY782GwT238Yi6Tg7IzNrE-->📚</span><!--pnid:UEaV5O8mLWjInBbZv3bngy-->作品</div>
+      <div data-page-node-id="Vn0pCbviLZs8xzd5g6PKgF" class="tab" data-tab="write"><span data-page-node-id="Kxf8fGox0QLTnfs6zkpg7Y" class="ic"><!--pnid:Uy59E1DZoVIAxmYBLR2nl0-->✍️</span><!--pnid:VAS8ztKHkLcVecHOVuB3rw-->续写</div>
+      <div data-page-node-id="KpLbve5Ey4DLIJl4LB2sf9" class="tab" data-tab="models"><span data-page-node-id="ATGg5SjOmSjSCOkZwCzFFh" class="ic"><!--pnid:VB7YUa9RYfJXieqLTC08NL-->🔌</span><!--pnid:R8fkgXkaXGY24GHr53aIB5-->模型</div>
+      <div data-page-node-id="dK5OmBGZM2EQe1UjHZEWNk" class="tab" data-tab="drafts"><span data-page-node-id="FyGjvrKjmv7VS4AIZO134h" class="ic"><!--pnid:d88tmlzJOE4MMplpZonhaV-->🗂️</span><!--pnid:31gc5741mkqEu24OhSdeEU-->草稿箱</div>
+      <div data-page-node-id="akVTOydT2PA7xvCu56mBb0" class="tab" data-tab="settings"><span data-page-node-id="FW5cVZ2DL0lEjuMhOGIEEL" class="ic"><!--pnid:JttPnokJ1lurOGI0Ve4ezi-->⚙️</span><!--pnid:IoEtaG1m1wgCOUM32I6yjw-->设置</div>
+      <div data-page-node-id="ijvsLn3jvizYnBHtFLnUNK" class="tab" data-tab="feedback"><span data-page-node-id="2VaJfwMfVCR6d6TNCcJCL3" class="ic"><!--pnid:1qHklv2UkdqNkN1OTGLX57-->🧠</span><!--pnid:zi6glPKHTALPULI3mpMq8b-->纠错记忆</div>
+    </nav>
+  </div>
+
+  <div data-page-node-id="BRmZDQftg9UrR3ATfO8771" class="modal" id="modal"></div>
+  <div data-page-node-id="CXF1op3IKp4ukONXRhinqp" class="toast" id="toast"></div>
+
+  <script data-page-node-id="FZojkgGnoxTqRnzjJ45R2r" data-pnid-children="33WrFcqRCcFKrEFy0cceYV">
+// 本地存储封装：作品库、模型配置、全局设置（全部存在浏览器 localStorage，数据不离开本机）
+const Store = (() => {
+  const K = { works: 'nw_works', models: 'nw_models', settings: 'nw_settings', drafts: 'nw_drafts', feedback: 'nw_feedback' };
+  let mem = {};                 // file:// 或隐私模式下 localStorage 被禁用时的内存兜底
+  let lsOK = true;
+  try { localStorage.getItem('__nw_probe__'); } catch (e) { lsOK = false; }
+  const get = (k, def) => {
+    if (lsOK) { try { const v = localStorage.getItem(k); if (v != null) return JSON.parse(v); } catch (e) {} }
+    return (k in mem) ? mem[k] : def;
+  };
+  const set = (k, v) => {
+    mem[k] = v;
+    if (!lsOK) return;
+    try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { lsOK = false; }
+  };
+
+  const DEFAULT_SETTINGS = {
+    theme: 'auto',          // auto | light | dark
+    defaultChars: 10000,    // 默认目标字数
+    styleStrength: 'high',  // high | medium —— 风格模仿强度
+    keepPOV: 'auto',        // auto | first | third —— 叙事视角约束
+    endHook: true,          // 章末是否强制留钩子
+    sampleChapters: 10,     // 续写时喂给模型的样本章数（含目标章）
+    temperature: 0.85,      // 采样温度
+    proxy: false,           // 是否走本地 CORS 代理
+    lastWorkId: null,       // 上次选择的作品（跨刷新记忆）
+    lastModelId: null,
+    styleWorkId: null,      // 风格参考作品（跨刷新记忆）      // 上次选择的模型（跨刷新记忆）
+    autoLearn: true         // 采用前若被大幅修改，自动提示记录纠错经验
+  };
+
+  return {
+    getWorks: () => get(K.works, []),
+    saveWorks: (w) => set(K.works, w),
+    getModels: () => get(K.models, []),
+    saveModels: (m) => set(K.models, m),
+    getSettings: () => Object.assign({}, DEFAULT_SETTINGS, get(K.settings, {})),
+    saveSettings: (s) => set(K.settings, s),
+    getDrafts: () => get(K.drafts, []),
+    saveDrafts: (d) => set(K.drafts, d),
+    addDraft: (d) => {
+      const arr = get(K.drafts, []);
+      // 注意：不能用外部的 uid()（它定义在主应用闭包里，这里访问不到，会导致导出/存草稿报错）
+      const nid = Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+      arr.unshift(Object.assign({ id: nid, ts: Date.now() }, d));
+      if (arr.length > 200) arr.length = 200;   // 最多保留 200 条，防止无限膨胀
+      set(K.drafts, arr);
+      return arr;
+    },
+    getFeedbacks: () => get(K.feedback, []),
+    saveFeedbacks: (f) => set(K.feedback, f),
+    addFeedback: (d) => {
+      const arr = get(K.feedback, []);
+      const nid = Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+      arr.unshift(Object.assign({ id: nid, ts: Date.now(), use: true }, d));
+      if (arr.length > 100) arr.length = 100;
+      set(K.feedback, arr);
+      return arr;
+    },
+    updateFeedback: (id, patch) => {
+      const arr = get(K.feedback, []).map(f => f.id === id ? Object.assign({}, f, patch) : f);
+      set(K.feedback, arr); return arr;
+    },
+    delFeedback: (id) => { const arr = get(K.feedback, []).filter(f => f.id !== id); set(K.feedback, arr); return arr; },
+    exportAll: () => JSON.stringify({
+      _type: 'novel-writer-backup',
+      works: get(K.works, []),
+      models: get(K.models, []),
+      settings: get(K.settings, {}),
+      drafts: get(K.drafts, []),
+      feedback: get(K.feedback, [])
+    }, null, 2),
+    importAll: (txt) => {
+      const o = JSON.parse(txt);
+      if (o.works) set(K.works, o.works);
+      if (o.models) set(K.models, o.models);
+      if (o.settings) set(K.settings, o.settings);
+      if (o.drafts) set(K.drafts, o.drafts);
+      if (o.feedback) set(K.feedback, o.feedback);
+    }
+  };
+})();
+
+</script>
+<script>
+// ===== GitHub 多设备同步（数据存用户自己的私有仓库）=====
+const GitHubSync = (() => {
+  const KEY = 'nw_gh';
+  const getCfg = () => { try { return Object.assign({ owner:'', repo:'', branch:'main', path:'novel-writer-data.json', token:'', auto:true }, JSON.parse(localStorage.getItem(KEY) || '{}')); } catch (e) { return { owner:'', repo:'', branch:'main', path:'novel-writer-data.json', token:'', auto:true }; } };
+  const setCfg = (c) => { try { localStorage.setItem(KEY, JSON.stringify(c)); } catch (e) {} };
+  const configured = () => { const c = getCfg(); return !!(c.owner && c.repo && c.token); };
+  const enc = (p) => p.split('/').map(encodeURIComponent).join('/');
+  const url = (c) => `https://api.github.com/repos/${encodeURIComponent(c.owner)}/${encodeURIComponent(c.repo)}/contents/${enc(c.path)}`;
+  const head = (c) => ({ 'Authorization': 'token ' + c.token, 'Accept': 'application/vnd.github+json' });
+  const b64enc = (s) => btoa(unescape(encodeURIComponent(s)));
+  const b64dec = (s) => decodeURIComponent(escape(atob((s || '').replace(/\s/g, ''))));
+  let _timer = null, _inflight = false, _lastSha = null, _autoinited = false;
+  const status = (m) => { const el = document.getElementById('ghStatus'); if (el) el.textContent = m; };
+
+  async function apiGetFile(c) {
+    const r = await fetch(url(c), { headers: head(c) });
+    if (r.status === 404) return null;
+    if (!r.ok) throw new Error('读取文件失败 HTTP ' + r.status);
+    const j = await r.json();
+    return { sha: j.sha, text: b64dec(j.content) };
+  }
+  async function test() {
+    const c = getCfg(); if (!configured()) return { ok:false, msg:'请先填写用户名 / 仓库 / PAT' };
+    try {
+      const r = await fetch(`https://api.github.com/repos/${encodeURIComponent(c.owner)}/${encodeURIComponent(c.repo)}`, { headers: head(c) });
+      if (r.status === 401) return { ok:false, msg:'令牌无效或无权限 (401)' };
+      if (r.status === 404) return { ok:false, msg:'仓库不存在或令牌无权访问 (404)' };
+      if (!r.ok) return { ok:false, msg:'仓库访问异常 ' + r.status };
+      const j = await r.json();
+      return { ok:true, msg: j.full_name + '（默认分支 ' + j.default_branch + '）' };
+    } catch (e) { return { ok:false, msg:'网络错误：' + e.message }; }
+  }
+  async function pullRaw() {
+    const c = getCfg(); if (!configured()) return { exists:false };
+    const m = await apiGetFile(c); if (!m) return { exists:false };
+    const data = JSON.parse(m.text);
+    return { exists:true, text:m.text, data, sha:m.sha };
+  }
+  async function pushOnce(c, body) {
+    let r = await fetch(url(c), { method:'PUT', headers: Object.assign({ 'Content-Type':'application/json' }, head(c)), body: JSON.stringify(body) });
+    if (r.status === 409) { const m = await apiGetFile(c); if (m) { body.sha = m.sha; r = await fetch(url(c), { method:'PUT', headers: Object.assign({ 'Content-Type':'application/json' }, head(c)), body: JSON.stringify(body) }); } }
+    return r;
+  }
+  async function pushCurrent() {
+    const c = getCfg(); if (!configured()) return { ok:false, msg:'未配置' };
+    let sha = _lastSha;
+    if (!sha) { try { const m = await apiGetFile(c); if (m) sha = m.sha; } catch (e) {} }
+    const body = { message: 'novel-writer sync ' + new Date().toISOString(), content: b64enc(Store.exportAll()) };
+    if (sha) body.sha = sha;
+    try {
+      const r = await pushOnce(c, body);
+      if (!r.ok) { const t = await r.text().catch(() => ''); return { ok:false, msg:'上传失败 HTTP ' + r.status + ' ' + t.slice(0,120) }; }
+      const j = await r.json(); _lastSha = j.content ? j.content.sha : null;
+      return { ok:true, sha:_lastSha };
+    } catch (e) { return { ok:false, msg:'上传异常：' + e.message }; }
+  }
+  async function pullMerge() {
+    try {
+      const r = await pullRaw();
+      if (!r.exists) return { ok:true, msg:'远程暂无数据，无需合并' };
+      const remote = r.data;
+      const union = (getter, key) => {
+        const la = Store[getter](), ra = remote[key] || [];
+        const m = new Map(); la.forEach(x => m.set(x.id, x));
+        ra.forEach(x => { if (!m.has(x.id)) m.set(x.id, x); else { const l = m.get(x.id); const lt = l.updatedAt || l.ts || 0, rt = x.updatedAt || x.ts || 0; if (rt >= lt) m.set(x.id, x); } });
+        return [...m.values()];
+      };
+      Store.saveWorks(union('getWorks', 'works'));
+      Store.saveModels(union('getModels', 'models'));
+      Store.saveFeedbacks(union('getFeedbacks', 'feedback'));
+      Store.saveDrafts(union('getDrafts', 'drafts'));
+      if (remote.settings) Store.saveSettings(Object.assign(Store.getSettings(), remote.settings));
+      _lastSha = r.sha;
+      return { ok:true, msg:'已合并远程数据' };
+    } catch (e) { return { ok:false, msg: e.message }; }
+  }
+  function schedulePush() {
+    const c = getCfg(); if (!c.auto || !configured()) return;
+    if (_inflight || _timer) return;
+    _timer = setTimeout(async () => {
+      _timer = null; if (_inflight) return; _inflight = true;
+      try { const r = await pushCurrent(); if (!r.ok && typeof toast === 'function') toast('GitHub 同步失败：' + r.msg); }
+      catch (e) { if (typeof toast === 'function') toast('GitHub 同步异常：' + e.message); }
+      finally { _inflight = false; }
+    }, 3000);
+  }
+  function initAuto() {
+    if (_autoinited) return; _autoinited = true;
+    ['saveWorks','saveModels','saveSettings','saveDrafts','saveFeedbacks'].forEach(fn => {
+      const orig = Store[fn];
+      if (typeof orig === 'function') { Store[fn] = function () { const r = orig.apply(this, arguments); schedulePush(); return r; }; }
+    });
+  }
+  async function maybePullEmpty() {
+    const hasLocal = Store.getWorks().length || Store.getModels().length || Store.getFeedbacks().length;
+    if (hasLocal) return;
+    try { const r = await pullRaw(); if (r.exists) { Store.importAll(r.text); _lastSha = r.sha; if (typeof toast === 'function') toast('已从 GitHub 拉取数据'); } }
+    catch (e) { status('自动拉取失败：' + e.message); }
+  }
+  return { getCfg, setCfg, configured, test, pullRaw, pullMerge, pushCurrent, initAuto, maybePullEmpty, status };
+})();
+// ===== end GitHub 多设备同步 =====
+</script>
+  <script data-page-node-id="tL92Zz7ySmWThXmvqV1EHE" data-pnid-children="QtFBuVzaATCS6uCLn0VqNN">
+// 小说解析：章节切分、字数统计、续写上下文拼接
+const Novel = (() => {
+  // 章节标题识别（行首）：第X章/回/卷/节/部/集/篇、Chapter X、序章/楔子/引子/终章/尾声/番外
+  const TITLE_RE = /^\s*(?:序章|楔子|引子|终章|尾声|番外[：: ]?.*|第\s*[0-9零一二三四五六七八九十百千两]+\s*[章回节卷部集篇]|[Cc]hapter\s*[0-9]+|PROLOGUE|EPILOGUE)\s*.*$/;
+
+  function splitChapters(text) {
+    const lines = text.split(/\r?\n/);
+    const idx = [];
+    lines.forEach((ln, i) => { if (TITLE_RE.test(ln)) idx.push(i); });
+
+    if (idx.length === 0) {
+      return [{ index: 0, title: '正文', content: text.trim(), raw: text.trim() }];
+    }
+    const chapters = [];
+    for (let k = 0; k < idx.length; k++) {
+      const start = idx[k];
+      const end = (k + 1 < idx.length) ? idx[k + 1] : lines.length;
+      const title = lines[start].trim();
+      const content = lines.slice(start + 1, end).join('\n').trim();
+      chapters.push({ index: k, title, content, raw: lines.slice(start, end).join('\n').trim() });
+    }
+    return chapters;
+  }
+
+  // 中文字数（去除空白）
+  function countWords(text) {
+    return (text || '').replace(/\s/g, '').length;
+  }
+
+  // 拼接续写所需的“风格样本”：取目标章及其前若干章
+  function buildContext(chapters, targetIndex, sampleCount) {
+    const from = Math.max(0, targetIndex - (sampleCount - 1));
+    const slice = chapters.slice(from, targetIndex + 1);
+    return slice.map((c) => `《${c.title}》\n${c.content}`).join('\n\n');
+  }
+
+  // 从最后一章标题推断下一章标题
+  function nextTitle(chapters) {
+    if (!chapters || chapters.length === 0) return '第1章';
+    const last = chapters[chapters.length - 1].title;
+    const m = last.match(/第\s*([0-9零一二三四五六七八九十百千两]+)\s*([章回节卷部集篇])/);
+    if (m) {
+      const num = toArabic(m[1]);
+      const unit = m[2];
+      if (num) return `第${num + 1}${unit}`;
+    }
+    return `续写·${last}`;
+  }
+
+  function toArabic(cn) {
+    const map = { '零': 0, '一': 1, '二': 2, '两': 2, '三': 3, '四': 4, '五': 5, '六': 6, '七': 7, '八': 8, '九': 9, '十': 10, '百': 100, '千': 1000 };
+    if (/^\d+$/.test(cn)) return parseInt(cn, 10);
+    if (cn.length === 1) return map[cn] || 0;
+    if (cn.indexOf('十') === 0) cn = '一' + cn;
+    let total = 0, section = 0, num = 0;
+    for (const ch of cn) {
+      if (ch === '十' || ch === '百' || ch === '千') {
+        const unit = map[ch];
+        if (num === 0) num = 1;
+        section += num * unit;
+        num = 0;
+        if (unit === 1000 || unit === 100) { total += section; section = 0; }
+      } else {
+        num = map[ch] !== undefined ? map[ch] : 0;
+      }
+    }
+    return total + section + num;
+  }
+
+  return { splitChapters, countWords, buildContext, nextTitle, TITLE_RE };
+})();
+
+</script>
+  <script data-page-node-id="aomPZDW3MY7Y4vfIuKWSWm" data-pnid-children="4cZYyarC2zfrXcAqC6iOcm">
+// 多模型 API 调用：统一 OpenAI 兼容 Chat Completions 格式，支持流式输出
+// 适配 DeepSeek / 智谱 GLM / Kimi(Moonshot) / 小米 MiMo 及任意 OpenAI 兼容端点
+const API = (() => {
+  async function chat(opts, onDelta) {
+    const {
+      baseUrl, apiKey, model, messages,
+      temperature = 0.85, maxTokens = 4096, stream = true, proxy = false, signal
+    } = opts;
+
+    const realBase = (baseUrl || '').replace(/\/$/, '');
+    const headers = { 'Content-Type': 'application/json' };
+
+    let url;
+    if (proxy) {
+      // 经本地代理转发，真实 base 与 apiKey 由代理侧处理，规避浏览器跨域预检
+      url = 'http://localhost:8787/chat/completions';
+      headers['X-Target-Base'] = realBase;
+    } else {
+      url = realBase + '/chat/completions';
+      headers['Authorization'] = 'Bearer ' + apiKey;
+    }
+
+    const body = { model, messages, temperature, max_tokens: maxTokens, stream };
+    if (proxy) body.apiKey = apiKey; // 代理转交鉴权
+
+    const nonStream = async () => {
+      const r = await fetch(url, { method: 'POST', headers, body: JSON.stringify(body), signal });
+      if (!r.ok) { const t = await r.text().catch(() => ''); throw new Error(`API 错误 ${r.status}：${t.slice(0, 300)}`); }
+      const j = await r.json();
+      return j.choices?.[0]?.message?.content || '';
+    };
+
+    if (!stream) return nonStream();
+
+    const r = await fetch(url, { method: 'POST', headers, body: JSON.stringify(body), signal });
+    if (!r.ok) { const t = await r.text().catch(() => ''); throw new Error(`API 错误 ${r.status}：${t.slice(0, 300)}`); }
+
+    const reader = r.body.getReader();
+    const dec = new TextDecoder();
+    let buf = '', full = '';
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buf += dec.decode(value, { stream: true });
+      let nl;
+      while ((nl = buf.indexOf('\n')) >= 0) {
+        const line = buf.slice(0, nl).trim();
+        buf = buf.slice(nl + 1);
+        if (!line || !line.startsWith('data:')) continue;
+        const data = line.slice(5).trim();
+        if (data === '[DONE]') continue;
+        try {
+          const j = JSON.parse(data);
+          const d = j.choices?.[0]?.delta?.content;
+          if (d) { full += d; onDelta && onDelta(d, full); }
+        } catch (e) { /* 忽略不完整分片 */ }
+      }
+    }
+    return full;
+  }
+
+  async function test(opts) {
+    return chat({
+      baseUrl: opts.baseUrl, apiKey: opts.apiKey, model: opts.model,
+      messages: [{ role: 'user', content: '请只回复两个字：连通' }],
+      temperature: 0.3, maxTokens: 16, stream: false, proxy: opts.proxy
+    });
+  }
+
+  return { chat, test };
+})();
+
+</script>
+  <script data-page-node-id="MDNRlQD21AxUa6xKBfzwIJ" data-pnid-children="W8VsgeNcbKNNNU74egCwpP">
+// 续写提示词工程：把网文写作方法论 + 硬性约束规范，编译成对模型的系统/用户提示
+// 方法论来源：网络小说创作研究（黄金三章、爽点公式、钩子、人设反差、对话即性格、少心理多动作等）
+const Prompt = (() => {
+  const SYSTEM = `你是一位顶尖的中文网络小说续写专家，擅长“接着前文写”而不是凭空创作。你的任务是：根据作者已写好的前文，高度模仿其结构、文风、人物与世界观，续写下一章。
+
+【必须严格遵守的硬性约束】
+1. 风格一致：严格模仿前文的叙事视角（第一/第三人称）、语言风格（口语化程度、句式长短、词汇偏好）、章节篇幅与段落节奏。不得切换文风，不得突然改用书面语、翻译腔或说明文口吻。
+2. 人物一致：所有出场人物的性格、口吻、关系、行为逻辑必须与已有内容完全一致，严禁 OOC（角色崩坏）。不得凭空引入新主角，不得强行改变已有角色的动机与设定。
+3. 结构一致：沿用原有的章节标题格式（如“第X章 标题”）、叙事结构（如困境—转机—收获）与伏笔/钩子手法。
+4. 世界观一致：不新增与原著冲突的设定；如需延展，必须建立在已有设定之上。
+5. 只输出续写正文：不要写“以下是续写”“好的，接下来”等任何引导语；不要用 Markdown 代码块包裹；不要加注释或点评。直接给出可粘贴进原文的章节内容。
+
+【网文续写专业方法论（请内化后自然运用）】
+- 开篇即冲突：续写开头尽快接上前文情绪或抛出新动作，避免冗长铺垫与自我介绍式回顾。
+- 对话即性格：用对话推动剧情并显露人物性格，对话要带信息量，减少无意义的闲聊与寒暄。
+- 爽点节奏：遵循“憋屈铺垫(约30%) + 打脸/反转爆发(约50%) + 埋下新危机(约20%)”的起伏，让一章有张力。
+- 结尾留钩子：章末必须抛出一个未解悬念、新信息或危机，制造“一波未平一波又起”，强制读者想看下一章。
+- 少心理多动作：减少大段心理描写，多用动作、对话、感官细节推进剧情；长句可拆短句，读起来不费劲。
+- 细节记忆点：沿用前文出现的人物小习惯、口头禅、标志性动作，强化角色辨识度。
+- 无缝衔接：明确承接上一章最后发生的事，人物状态、时间线、地点必须与前文严丝合缝，不出现矛盾。`;
+
+  // 风格强度文案
+  const STRENGTH = {
+    high: '高强度模仿：输出应尽量 indistinguishable（难以分辨），连句式习惯、用词偏好都要贴近原文，仅允许必要的最小润色。',
+    medium: '中等强度：在保持人物与世界观一致的前提下，允许对局部表达做少量更流畅的润色。'
+  };
+
+  const POV = {
+    auto: '保持原文使用的叙事视角（不要改变人称）。',
+    first: '保持第一人称“我”的叙事视角。',
+    third: '保持第三人称叙事视角。'
+  };
+
+  function buildMessages({ context, styleContext, lastTitle, targetChars, totalChars, styleStrength, keepPOV, endHook, extraNote, priorText, chunkNo, totalChunks, requirements, feedback }) {
+    const reqBlock = (requirements && requirements.length)
+      ? '【剧情要求（以下是本章必须真实发生的核心情节，不是可选点缀，也不是氛围暗示）】\n'
+        + requirements.map((r, i) => `${i + 1}. ${r}`).join('\n') + '\n'
+        + '- 每条都必须写成「已发生 / 正在发生的具体事件」：有场景、动作、对话或明确结果。\n'
+        + '- 严禁只用“提及、暗示、铺垫、埋伏笔、转述、比喻”带过就算完成。\n'
+        + '- 正面直接描写事件过程与后果，不要回避、弱化或一笔带过。\n'
+        + '- 若某条与当前剧情进度确实冲突，也要把剧情推进到该事件正在发生的关键场面。\n'
+      : '';
+    const fbBlock = (feedback && feedback.length)
+      ? '【历史纠错经验 / 写作偏好（务必遵守，避免重复犯同样的错误；下面是你此前人工修正并沉淀下来的经验）】\n'
+        + feedback.map(f => '· ' + f.note + (f.summary ? '（' + f.summary + '）' : '')).join('\n') + '\n'
+      : '';
+    const hasStyle = !!(styleContext && styleContext.trim());
+    const styleBlock = hasStyle
+      ? '【风格参考范本（仅借鉴其文风 / 笔调 / 句式 / 视角，绝不借用其内容、人物或情节）】\n────────────────\n' + styleContext + '\n────────────────\n\n'
+      : '';
+    const taskText = hasStyle
+      ? `请基于上方【原作样本】的剧情、人物与世界观，续写「原作样本」的下一章；但**写作风格（叙事视角、语言风格、句式长短、词汇偏好、段落与篇幅节奏）必须严格模仿上方【风格参考范本】的笔调**，做到"用范本的文风写原作的故事"。\n- 内容、人物、世界观、情节全部来自【原作样本】，严禁把【风格参考范本】的任何人物 / 情节 / 设定混入原作。\n- 紧接《${lastTitle}》结尾的情节、情绪与悬念，保证剧情、时间、地点、人物状态与原作无缝衔接。`
+      : `请基于以上原文，续写下一章。\n- 紧接《${lastTitle}》结尾的情节、情绪与悬念，保证剧情、时间、地点、人物状态无缝衔接。`;
+    const baseUser = `【原作样本】（最近若干章，用于模仿其结构 / 文风 / 人物 / 世界观）
+────────────────
+${context}
+────────────────
+
+${styleBlock}${taskText}
+- 风格模仿强度：${STRENGTH[hasStyle ? 'high' : styleStrength] || STRENGTH.high}${hasStyle ? '（此处"前文 / 原文"特指上方【风格参考范本】的文风）' : ''}
+- 叙事视角约束：${POV[keepPOV] || POV.auto}
+- 不得 OOC，不得改变文风，不得新增与原著冲突的设定，不得写引导语或点评。
+${extraNote ? '【额外要求】\n' + extraNote + '\n' : ''}${fbBlock}${reqBlock}`;
+
+    // 续写接力（多段拼接）：接在已生成内容的末尾继续往下写，避免凭空重开
+    if (priorText && priorText.trim()) {
+      const relayReq = (requirements && requirements.length)
+        ? '- 作者剧情要求（本章必须落实的事件，不得只提及或暗示）：' + requirements.join('；') + '。尚未发生的条目必须在本段推进为「正在发生」的具体场面（有动作与结果）。\n'
+        : '';
+      return [
+        { role: 'system', content: SYSTEM },
+        { role: 'user', content: baseUser },
+        { role: 'assistant', content: priorText },
+        { role: 'user', content: `【续写接力】你已写到上面这段末尾。请严格保持文风、人物、世界观一致，紧接这段结尾继续往下写，不要重复已写内容、不要写引导语或点评。
+- 本次目标约 ${targetChars} 字（整章目标 ${totalChars} 字，当前第 ${chunkNo}/${totalChunks} 段）。
+- ${endHook ? '这是最后一段，章末必须抛出一个未解悬念或新危机（留钩子），不要写完满收尾。' : '正常推进剧情即可，不强制留钩子。'}
+${relayReq}直接输出续写正文（自然接在前面之后，不要另起重复的开头）。` }
+      ];
+    }
+
+    // 首段：续写整章（或整章的第一段）
+    const user = `${baseUser}
+- 目标篇幅：约 ${targetChars} 字（中文）。
+- ${endHook ? '必须在章节末尾抛出一个未解悬念或新危机（留钩子），不要写完满收尾。' : '正常收束即可，不强制留钩子。'}
+直接输出续写正文。`;
+    return [
+      { role: 'system', content: SYSTEM },
+      { role: 'user', content: user }
+    ];
+  }
+
+  return { SYSTEM, buildMessages };
+})();
+
+</script>
+  <script data-page-node-id="92nBeidV9z8l5lbSCoE1mw" data-pnid-children="5AKE3iogVN3iY5LNOXS8EA">
+// 小说续写助手 —— 主控制器（作品 / 续写 / 模型 / 设置 四个 Tab）
+(function () {
+  const $ = (s, r = document) => r.querySelector(s);
+  const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+  const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+  const esc = (s) => (s == null ? '' : String(s)).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+  const state = { works: [], models: [], settings: null, currentWorkId: null, lastGen: null, abort: null };
+  const PRESETS = {
+    deepseek: { name: 'DeepSeek', baseUrl: 'https://api.deepseek.com', model: 'deepseek-chat' },
+    zhipu: { name: '智谱 GLM', baseUrl: 'https://open.bigmodel.cn/api/paas/v4/', model: 'glm-4-flash' },
+    kimi: { name: 'Kimi', baseUrl: 'https://api.moonshot.cn/v1', model: 'kimi-k3' },
+    mimo: { name: '小米 MiMo', baseUrl: 'https://api.xiaomimimo.com/v1', model: 'mimo-v2.5-pro' },
+    custom: { name: '自定义', baseUrl: 'https://', model: '' }
+  };
+
+  function toast(msg) {
+    const t = $('#toast'); t.textContent = msg; t.classList.add('show');
+    clearTimeout(t._t); t._t = setTimeout(() => t.classList.remove('show'), 2400);
+  }
+  function load() { state.works = Store.getWorks(); state.models = Store.getModels(); state.settings = Store.getSettings(); }
+  function persistWorks() { Store.saveWorks(state.works); }
+  function persistModels() { Store.saveModels(state.models); }
+  function applyTheme() {
+    const t = state.settings.theme;
+    const dark = t === 'dark' || (t === 'auto' && matchMedia('(prefers-color-scheme: dark)').matches);
+    document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+  }
+
+  /* ---------------- Tabs ---------------- */
+  function switchTab(name) {
+    $$('.page').forEach(p => p.classList.toggle('active', p.id === 'page-' + name));
+    $$('.tabbar .tab').forEach(t => t.classList.toggle('on', t.dataset.tab === name));
+    if (name === 'works') renderWorks();
+    if (name === 'models') renderModels();
+    if (name === 'write') renderWrite();
+    if (name === 'settings') renderSettings();
+    if (name === 'drafts') renderDrafts();
+    if (name === 'feedback') renderFeedback();
+  }
+
+  /* ---------------- 作品 ---------------- */
+  function addWorkFromText(text, title, author) {
+    text = (text || '').trim();
+    if (!text) { toast('文本为空'); return null; }
+    const chapters = Novel.splitChapters(text);
+    const w = { id: uid(), title: title || '未命名作品', author: author || '', text, chapters, createdAt: Date.now(), updatedAt: Date.now() };
+    state.works.unshift(w); persistWorks(); return w;
+  }
+  function renderWorks() {
+    const box = $('#worksList');
+    if (!state.works.length) {
+      box.innerHTML = `<div class="empty"><div class="big">📖</div><p>还没有作品</p><p class="hint">在上方上传 txt / 粘贴正文，或新建空白作品</p></div>`;
+      return;
+    }
+    box.innerHTML = state.works.map(w => {
+      const words = Novel.countWords(w.text);
+      return `<div class="card">
+        <div class="row spread"><h3>${esc(w.title)}</h3><span class="badge">${w.chapters.length} 章</span></div>
+        <div class="meta">${esc(w.author || '佚名')} · 约 ${words} 字 · ${new Date(w.updatedAt).toLocaleDateString()}</div>
+        <div class="row wrap" style="margin-top:10px">
+          <button class="btn sm primary" data-act="continue" data-id="${w.id}">续写</button>
+          <button class="btn sm" data-act="view" data-id="${w.id}">查看章节</button>
+          <button class="btn sm danger" data-act="del" data-id="${w.id}">删除</button>
+        </div></div>`;
+    }).join('');
+  }
+  function viewChapters(id) {
+    const w = state.works.find(x => x.id === id); if (!w) return;
+    const list = w.chapters.map((c, i) =>
+      `<div class="chapter-item" data-ch="${i}"><div class="t">${esc(c.title)}</div><div class="c">${Novel.countWords(c.content)} 字</div></div>`
+    ).join('');
+    showModal(`<h3>${esc(w.title)} · 共 ${w.chapters.length} 章</h3><div id="chList">${list}</div>
+      <div id="chView" style="display:none"><div class="row spread" style="margin:8px 0"><b id="chTitle"></b><button class="btn sm" id="chBack">返回列表</button></div>
+      <textarea readonly style="min-height:300px">${''}</textarea></div>
+      <div class="row" style="margin-top:10px"><button class="btn" id="mClose">关闭</button></div>`);
+    $('#chList').addEventListener('click', e => {
+      const it = e.target.closest('.chapter-item'); if (!it) return;
+      const c = w.chapters[+it.dataset.ch];
+      $('#chList').style.display = 'none'; $('#chView').style.display = 'block';
+      $('#chTitle').textContent = c.title;
+      $('#chView textarea').value = c.content;
+    });
+    $('#chBack').addEventListener('click', () => { $('#chView').style.display = 'none'; $('#chList').style.display = 'block'; });
+    $('#mClose').addEventListener('click', hideModal);
+  }
+
+  /* ---------------- 续写 ---------------- */
+  function getSelWork() { return state.works.find(w => w.id === $('#selWork').value); }
+  function getSelModel() { return state.models.find(m => m.id === $('#selModel').value); }
+  function fillChapterSelect(w) {
+    const sel = $('#selChapter');
+    sel.innerHTML = w.chapters.map((c, i) => `<option value="${i}">${esc(c.title)}（${Novel.countWords(c.content)}字）</option>`).join('');
+    sel.value = String(w.chapters.length - 1);
+  }
+  function renderWrite() {
+    const sw = $('#selWork'), sm = $('#selModel');
+    const has = state.works.length > 0;
+    $('#writeEmpty').style.display = has ? 'none' : 'block';
+    $('#writeForm').style.display = has ? '' : 'none';
+    if (!has) {
+      // 无作品：两个导出按钮一律禁用（HTML 也默认 disabled 兜底）
+      $('#btnSaveDocx').disabled = true;
+      $('#btnExportAll').disabled = true;
+      return;
+    }
+    if (!state.currentWorkId && state.works.length) state.currentWorkId = state.works[0].id;
+    // 有作品但当前未选定某部时禁用；选定后启用
+    $('#btnSaveDocx').disabled = !state.currentWorkId;
+    $('#btnExportAll').disabled = !state.currentWorkId;
+    sw.innerHTML = state.works.map(w => `<option value="${w.id}">${esc(w.title)}（${w.chapters.length}章）</option>`).join('');
+    // 跨刷新记忆上次选择的作品 / 模型
+    const lastWork = state.settings.lastWorkId && state.works.some(w => w.id === state.settings.lastWorkId) ? state.settings.lastWorkId : state.currentWorkId;
+    if (lastWork && state.works.some(w => w.id === lastWork)) { sw.value = lastWork; state.currentWorkId = lastWork; }
+    fillChapterSelect(getSelWork());
+    if (!state.models.length) { sm.innerHTML = `<option value="">（请先到「模型」页配置）</option>`; }
+    else sm.innerHTML = state.models.map(m => `<option value="${m.id}">${esc(m.name)} · ${esc(m.model)}</option>`).join('');
+    const ssw = $('#selStyleWork');
+    ssw.innerHTML = `<option value="">不指定（仅模仿当前作品自身文风）</option>` + state.works.map(w => `<option value="${w.id}">${esc(w.title)}（${w.chapters.length}章）</option>`).join('');
+    const lastStyle = state.settings.styleWorkId && state.works.some(w => w.id === state.settings.styleWorkId) ? state.settings.styleWorkId : '';
+    if (lastStyle) ssw.value = lastStyle;
+    const lastModel = state.settings.lastModelId && state.models.some(m => m.id === state.settings.lastModelId) ? state.settings.lastModelId : '';
+    if (lastModel) sm.value = lastModel;
+    $('#inChars').value = state.settings.defaultChars;
+    $('#inSample').value = state.settings.sampleChapters;
+    setChips('#chipStrength', state.settings.styleStrength);
+    setChips('#chipPOV', state.settings.keepPOV);
+    $('#chipHook').classList.toggle('on', state.settings.endHook);
+    $('#inTemp').value = state.settings.temperature; $('#tempVal').textContent = state.settings.temperature;
+  }
+  function updateProgress(full, chars) {
+    const n = (full || '').replace(/\s/g, '').length;
+    const pct = Math.min(100, Math.round(n / chars * 100));
+    $('#progBar').style.width = pct + '%';
+  }
+  function setGenButtons(mode) {
+    $('#btnWrite').disabled = mode === 'writing';
+    if ($('#btnRecordFix')) $('#btnRecordFix').disabled = mode !== 'done';
+    if ($('#btnAiCritique')) $('#btnAiCritique').disabled = mode !== 'done';
+    $('#btnStop').disabled = mode !== 'writing';
+    $('#btnAdopt').disabled = mode !== 'done';
+    $('#btnSaveDocx').disabled = !state.currentWorkId;
+    $('#btnExportAll').disabled = !state.currentWorkId;
+    $('#btnRedo').disabled = mode !== 'done';
+    $('#btnDiscard').disabled = mode !== 'done';
+    $('#writeOutput').disabled = mode === 'writing';
+  }
+  // 续写：把目标字数拆成多段，逐段调用模型“接力”续写，直到达到目标或上限。
+  // 这样既能突破单条 API 的输出上限（一次最多写几千字），又能在切后台/断网后自动重连续上。
+  const CHUNK_CHARS = 3000;       // 每段目标字数（受模型单次输出上限约束，不宜过大）
+  const STALL_MS = 30000;         // 单段超过该时间未收到任何数据，判定为中断并尝试重连
+  function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+  // 单次流式调用（自带看门狗，长时间无数据会主动中断以便上层重试）
+  async function streamChunk(messages, maxTokens, temp, m, onDelta, parentSignal) {
+    const ctrl = new AbortController();
+    const off = () => ctrl.abort();
+    if (parentSignal) {
+      if (parentSignal.aborted) ctrl.abort();
+      else parentSignal.addEventListener('abort', off);
+    }
+    const realBase = (m.baseUrl || '').replace(/\/$/, '');
+    const headers = { 'Content-Type': 'application/json' };
+    let url;
+    if (m.proxy) { url = 'http://localhost:8787/chat/completions'; headers['X-Target-Base'] = realBase; }
+    else { url = realBase + '/chat/completions'; headers['Authorization'] = 'Bearer ' + m.apiKey; }
+    const body = { model: m.model, messages, temperature: temp, max_tokens: maxTokens, stream: true };
+    if (m.proxy) body.apiKey = m.apiKey;
+
+    const r = await fetch(url, { method: 'POST', headers, body: JSON.stringify(body), signal: ctrl.signal });
+    if (!r.ok) { const t = await r.text().catch(() => ''); throw new Error(`API 错误 ${r.status}：${t.slice(0, 300)}`); }
+    const reader = r.body.getReader();
+    const dec = new TextDecoder();
+    let buf = '', full = '', lastData = Date.now();
+    const watchdog = setInterval(() => {
+      // 后台标签时浏览器会节流/暂停网络与计时，此时不应判“停滞”而误杀续写
+      if (document.hidden) return;
+      if (Date.now() - lastData > STALL_MS) ctrl.abort();
+    }, 5000);
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buf += dec.decode(value, { stream: true });
+        let nl;
+        while ((nl = buf.indexOf('\n')) >= 0) {
+          const line = buf.slice(0, nl).trim(); buf = buf.slice(nl + 1);
+          if (!line || !line.startsWith('data:')) continue;
+          const data = line.slice(5).trim();
+          if (data === '[DONE]') continue;
+          try { const j = JSON.parse(data); const d = j.choices?.[0]?.delta?.content; if (d) { full += d; lastData = Date.now(); onDelta && onDelta(d, full); } } catch (e) {}
+        }
+      }
+    } finally {
+      clearInterval(watchdog);
+      if (parentSignal) parentSignal.removeEventListener('abort', off);
+    }
+    return full;
+  }
+
+  async function doWrite() {
+    const w = getSelWork(); if (!w) { toast('请先选择作品'); return; }
+    const m = getSelModel(); if (!m) { toast('请先在「模型」页配置并选择模型'); return; }
+    const targetIdx = parseInt($('#selChapter').value, 10);
+    const chap = w.chapters[targetIdx];
+    const chars = Math.max(300, parseInt($('#inChars').value, 10) || state.settings.defaultChars);
+    const strength = $('#chipStrength .on').dataset.v;
+    const pov = $('#chipPOV .on').dataset.v;
+    const hook = $('#chipHook').classList.contains('on');
+    const temp = parseFloat($('#inTemp').value) || 0.85;
+    const sample = Math.max(1, parseInt($('#inSample').value, 10) || 10);
+    let styleContext = '';
+    const styleId = $('#selStyleWork').value;
+    if (styleId) {
+      const swB = state.works.find(x => x.id === styleId);
+      if (swB && swB.chapters.length) styleContext = Novel.buildContext(swB.chapters, swB.chapters.length - 1, sample);
+    }
+    const extra = $('#inExtra').value.trim();
+    const reqText = $('#inReq').value.trim();
+    const reqList = reqText ? reqText.split(/\n+/).map(s => s.trim()).filter(Boolean) : [];
+    const fbList = Store.getFeedbacks().filter(f => f.use);
+    const context = Novel.buildContext(w.chapters, targetIdx, sample);
+    const totalChunks = Math.max(1, Math.ceil(chars / CHUNK_CHARS));
+
+    if (chars > 20000) toast(`目标 ${chars} 字较多，将分 ${totalChunks} 段生成，请尽量保持页面在前台`);
+
+    state.lastGen = { workId: w.id, targetIdx, text: '' };
+    const out = $('#writeOutput'); out.value = ''; out.disabled = true;
+    $('#inNewTitle').value = Novel.nextTitle(w.chapters);
+    const reqBox = $('#reqCheckBox'); reqBox.style.display = 'none'; reqBox.innerHTML = '';
+    setGenButtons('writing');
+    state.abort = new AbortController();
+    let acc = '', failChunk = 0, lastErr = '';
+    try {
+      for (let c = 1; ; c++) {
+        const doneChars = acc.replace(/\s/g, '').length;
+        if (doneChars >= chars) break;
+        const thisTarget = Math.min(CHUNK_CHARS, chars - doneChars);
+        const isLast = (doneChars + thisTarget) >= chars;
+        const maxTokens = Math.ceil(thisTarget * 1.7) + 256;
+        const tail = acc.length ? acc.slice(-1600) : '';
+        const messages = Prompt.buildMessages({
+          context, styleContext, lastTitle: chap.title, targetChars: thisTarget, totalChars: chars,
+          styleStrength: strength, keepPOV: pov, endHook: hook && isLast, extraNote: extra,
+          priorText: tail, chunkNo: c, totalChunks, requirements: reqList, feedback: fbList
+        });
+        let ok = false, attempt = 0;
+        while (attempt < 3 && !ok) {
+          attempt++;
+          try {
+            const text = await streamChunk(messages, maxTokens, temp, m, (d, full) => {
+              out.value = acc + full; out.scrollTop = out.scrollHeight; updateProgress(acc + full, chars);
+            }, state.abort.signal);
+            if (!text || !text.replace(/\s/g, '')) {
+              // 空返回：不累加、不算成功，避免原地死循环刷接口
+              lastErr = '模型返回空内容';
+              if (attempt < 3) { toast(`第 ${c}/${totalChunks} 段返回为空，重试中(${attempt}/3)…`); await sleep(1200); }
+            } else {
+              acc = acc + text; ok = true; updateProgress(acc, chars);
+            }
+          } catch (e) {
+            if (e.name === 'AbortError' && state.abort && state.abort.signal.aborted) throw e; // 用户主动停止
+            lastErr = e.message;
+            if (attempt < 3) { toast(`第 ${c}/${totalChunks} 段中断，重连中(${attempt}/3)…`); await sleep(1200 * attempt); }
+          }
+        }
+        if (!ok) { failChunk = c; break; } // 失败原因统一到循环外如实提示，避免“已达到上限”误导
+        if (c >= 60) break;                // 保险上限：异常情况下不无限循环请求
+        if (!isLast) await sleep(400); // 段间稍作停顿，避免触发接口限流
+      }
+      setGenButtons('done');
+      if (state.lastGen) state.lastGen.text = out.value;
+      saveGenToDraft();
+      if (reqList.length) { try { await reviewRequirements(m, out.value, reqList); } catch (e) {} }
+      if (acc.replace(/\s/g, '').length < chars) {
+        toast(failChunk
+          ? `第 ${failChunk} 段连续重连失败（${lastErr || '接口异常'}），已完成内容已保留，可点「重新生成」继续补全`
+          : '已达到可生成上限，可点「重新生成」继续补全');
+      } else toast('续写完成，可编辑后「采用」');
+    } catch (e) {
+      if (e.name === 'AbortError') { toast('已停止，已完成内容已保留在文本框'); setGenButtons('done'); saveGenToDraft(); }
+      else { out.value = (out.value || '') + '\n【生成失败】' + e.message; setGenButtons('done'); toast('生成失败：' + e.message); }
+    }
+  }
+
+  /* ---------------- 剧情要求自检（生成后由模型逐条核对） ---------------- */
+  let lastReviewCtx = null; // {m,text,reqs} 供「重新核对」复用
+  let lastReqCheckResults = []; // 最近一次核对结果，供「沉淀为经验」引用
+  async function reviewRequirements(m, text, reqs) {
+    const box = $('#reqCheckBox');
+    lastReviewCtx = { m, text, reqs };
+    box.style.display = '';
+    box.innerHTML = '<div class="hint">正在逐条核对剧情要求……</div>';
+    const sys = '你是严格的小说续写质检员。下面给出作者的「剧情要求」（每条一行，带序号）以及模型实际生成的续写正文。逐条核对：要求所述事件必须在正文中「已发生或正在发生」，且有具体场景 / 动作 / 结果描写，才算「已体现」；仅提及、暗示、铺垫伏笔、他人转述或比喻带过，一律算「未体现」。';
+    const listText = reqs.map((r, i) => `${i + 1}. ${r}`).join('\n');
+    const user = `【作者要求】\n${listText}\n\n【续写正文】\n${text}\n\n请只输出一个 JSON 数组，不要输出其他任何内容（不要解释、不要代码块、不要多余文字）。数组每个元素为对象：{"idx":序号(整数，从1开始),"req":"原要求文本","met":true或false,"note":"一句话依据或缺失原因（15字以内）"}。要求未被体现时 met 为 false。`;
+    try {
+      const raw = await API.chat({
+        baseUrl: m.baseUrl, apiKey: m.apiKey, model: m.model,
+        messages: [{ role: 'system', content: sys }, { role: 'user', content: user }],
+        temperature: 0.2, maxTokens: 2000, stream: false, proxy: m.proxy
+      });
+      const results = parseReqJson(raw, reqs);
+      if (results) renderReqCheck(results, reqs);
+      else renderReqFail(raw);
+    } catch (e) {
+      renderReqFail(null, e.message);
+    }
+  }
+  function bindRecheck(container) {
+    const b = container.querySelector('#btnRecheck');
+    if (b && lastReviewCtx) b.addEventListener('click', () => reviewRequirements(lastReviewCtx.m, lastReviewCtx.text, lastReviewCtx.reqs));
+    const sink = container.querySelector('#btnSinkAll');
+    if (sink) sink.addEventListener('click', () => {
+      const uns = lastReqCheckResults.filter(r => !r.met);
+      if (!uns.length) return;
+      uns.forEach(r => Store.addFeedback({ note: r.req, original: '', fixed: '', summary: '来自剧情要求核对（未体现项）', use: true }));
+      sink.disabled = true; sink.textContent = '已加入 ' + uns.length + ' 条';
+      renderFeedback(); toast('已把 ' + uns.length + ' 条未体现项加入纠错记忆');
+    });
+    container.querySelectorAll('[data-fact="tofb"]').forEach(btn => btn.addEventListener('click', () => {
+      const r = lastReqCheckResults[parseInt(btn.dataset.idx, 10)];
+      if (!r) return;
+      Store.addFeedback({ note: r.req, original: '', fixed: '', summary: '来自剧情要求核对（未体现项）', use: true });
+      btn.disabled = true; btn.textContent = '已沉淀';
+      renderFeedback(); toast('已沉淀为纠错经验，下次生成自动带上');
+    }));
+  }
+  function renderReqFail(raw, errMsg) {
+    const box = $('#reqCheckBox');
+    const snippet = raw ? esc(String(raw).replace(/\s+/g, ' ').slice(0, 200)) : '';
+    box.innerHTML = `<div class="hint">核对结果解析失败（不影响已生成的续写）。${errMsg ? '原因：' + esc(errMsg) + '。' : ''}${snippet ? '模型返回片段：<code>' + snippet + '</code>' : '模型返回为空。'}点「重新核对」用当前正文再试一次。</div><button class="btn" id="btnRecheck" style="margin-top:8px">重新核对</button>`;
+    bindRecheck(box);
+  }
+  function parseReqJson(raw, reqs) {
+    if (!raw) return null;
+    let s = String(raw).trim();
+    s = s.replace(/```[a-zA-Z]*/g, '').replace(/```/g, '').trim(); // 去 markdown 代码围栏
+    const cands = [s];
+    const a = s.indexOf('['), b = s.lastIndexOf(']');
+    if (a !== -1 && b > a) cands.push(s.slice(a, b + 1));
+    for (let t of cands) {
+      t = t.replace(/\r?\n/g, ' ').replace(/[“”]/g, '"').replace(/[‘’]/g, "'").replace(/,\s*([\]}])/g, '$1');
+      try {
+        const arr = JSON.parse(t);
+        const list = Array.isArray(arr) ? arr : (arr && (Array.isArray(arr.results) ? arr.results : (Array.isArray(arr.checks) ? arr.checks : null)));
+        if (list) return mapReqResults(list, reqs);
+      } catch (e) {}
+    }
+    // 兜底：抽取所有完整 {...} 对象（应对返回被截断等情况）
+    const objs = [];
+    const re = /\{[^{}]*\}/g; let mm;
+    while ((mm = re.exec(s)) !== null) {
+      try { objs.push(JSON.parse(mm[0].replace(/\r?\n/g, ' ').replace(/[“”]/g, '"').replace(/,\s*}/g, '}'))); } catch (e) {}
+    }
+    if (objs.length) return mapReqResults(objs, reqs);
+    return null;
+  }
+  function mapReqResults(arr, reqs) {
+    return reqs.map((r, i) => {
+      const found = arr.find(x => x && (x.idx === i + 1 || (typeof x.idx === 'string' && x.idx === String(i + 1)) || x.req === r));
+      return { req: r, met: found ? !!found.met : false, note: found ? (found.note || '') : '未返回核对结果' };
+    });
+  }
+  function renderReqCheck(results, reqs) {
+    const box = $('#reqCheckBox');
+    lastReqCheckResults = results;
+    const metCount = results.filter(r => r.met).length;
+    const noCnt = results.length - metCount;
+    const items = results.map((r, i) => `<div class="req-item ${r.met ? 'ok' : 'no'}"><span class="req-badge">${r.met ? '✅' : '❌'}</span><span class="req-text">${esc(r.req)}</span><span class="req-note">${esc(r.note || '')}</span>${r.met ? '' : `<div class="row" style="margin-top:6px"><button class="btn sm" data-fact="tofb" data-idx="${i}">🧠 沉淀为经验</button><span class="meta">点一下即可，下次生成会重点强调这条</span></div>`}</div>`).join('');
+    const sinkAll = noCnt ? `<div class="row" style="margin-top:8px"><button class="btn sm" id="btnSinkAll">一键把 ${noCnt} 条未体现项加入纠错记忆</button><span class="meta">不用逐条点</span></div>` : '';
+    box.innerHTML = `<div class="req-title">剧情要求核对（${metCount}/${reqs.length} 已体现）</div>${items}${sinkAll}<div style="margin-top:8px"><button class="btn" id="btnRecheck">重新核对</button></div><div class="hint">模型自检结果，仅供参考；未体现的条目可点「重新生成」重试，或一键沉淀为经验让下次生成重点强调。</div>`;
+    bindRecheck(box);
+  }
+  function saveGenToDraft() {
+    // 每次生成续写结果后自动存入草稿箱（无论用户是否点导出/采用），避免漏存
+    try {
+      const w = getSelWork();
+      const out = ($('#writeOutput').value || '');
+      if (!out.replace(/\s/g, '')) return;
+      if (!w) return;
+      const title = ($('#inNewTitle').value.trim()) || ((w.title || '小说') + ' 续写');
+      Store.addDraft({ title: title, workTitle: w.title || '小说', source: 'gen', content: out });
+      renderDrafts();
+    } catch (e) {}
+  }
+  function adopt() {
+    const g = state.lastGen;
+    if (!g) { toast('没有可采用的生成内容，请先生成'); return; }
+    const out = $('#writeOutput').value.trim();
+    if (!out) { toast('内容为空，无法追加'); return; }
+    const w = state.works.find(x => x.id === g.workId);
+    if (!w) { toast('未找到对应作品'); return; }
+    const title = ($('#inNewTitle').value.trim()) || Novel.nextTitle(w.chapters);
+    w.chapters.push({ index: w.chapters.length, title, content: out, raw: title + '\n' + out });
+    w.text = (w.text || '') + '\n\n' + title + '\n' + out;
+    w.updatedAt = Date.now(); persistWorks();
+    toast('已追加为：' + title);
+    state.currentWorkId = w.id; renderWrite();
+    // 自动纠错记忆：采用前若被大幅修改，弹窗提示记录经验（用户确认后保存）
+    try {
+      const orig = (state.lastGen && state.lastGen.text) || out;
+      if (state.settings.autoLearn && orig && out && Math.abs(orig.length - out.length) / Math.max(1, orig.length) > 0.08) {
+        openRecordFix(orig, out);
+      }
+    } catch (e) {}
+  }
+
+  function exportTxt() {
+    // 仅导出「本次续写的结果」，而不是整本作品
+    const w = state.works.find(x => x.id === state.currentWorkId);
+    const out = ($('#writeOutput').value || '').trim();
+    if (!out) { toast('请先生成或采用续写内容，再点「导出续写」'); return; }
+    const title = ($('#inNewTitle').value.trim()) || '续写片段';
+    const fn = title.replace(/[\\/:*?"<>|]/g, '_') + '.txt';
+    // 续写结果在生成时已自动存入草稿箱，这里只负责导出为 txt
+    showExportModal(out, fn);
+  }
+  function exportAllTxt() {
+    // 整本导出（含所有章节）；不进草稿箱，仅续写部分才入草稿箱
+    const w = state.works.find(x => x.id === state.currentWorkId);
+    if (!w) { toast('请先选择一个作品'); return; }
+    let txt = '';
+    if (w.author) txt += '作者：' + w.author + '\n';
+    (w.chapters || []).forEach(c => {
+      txt += (c.title || '') + '\n' + (c.content || c.raw || '') + '\n\n';
+    });
+    if (!txt.trim() && w.text) txt = w.text;
+    if (!txt.trim()) { toast('作品内容为空，无法导出'); return; }
+    const fn = (w.title || '小说').replace(/[\\/:*?"<>|]/g, '_') + '.txt';
+    showExportModal(txt, fn, false);
+  }
+  function showExportModal(txt, fn, toDraft) {
+    const draftHint = toDraft === false
+      ? '<p class="hint">本次为「整本导出」，仅导出完整内容、不写入草稿箱。手机端点「下载 .txt」会调用系统分享，可选「存储到文件」；若未弹出，请点「复制全部」粘贴到备忘录/文件 App，或电脑端打开本文档下载。</p>'
+      : '<p class="hint">本次导出已自动存入「草稿箱」，可随时调阅。手机端点「下载 .txt」会调用系统分享，可选「存储到文件」；若未弹出，请点「复制全部」粘贴到备忘录/文件 App，或电脑端打开本文档下载。</p>';
+    showModal('<h3>导出 TXT · ' + esc(fn) + '</h3>' +
+      draftHint +
+      '<textarea id="expTxt" readonly style="min-height:320px;width:100%;box-sizing:border-box">' + esc(txt) + '</textarea>' +
+      '<div class="row" style="margin-top:10px">' +
+      '<button class="btn primary" id="btnCopyTxt">复制全部</button>' +
+      '<button class="btn" id="btnDownloadTxt">下载 .txt</button>' +
+      '<button class="btn ghost" id="mClose2">关闭</button></div>');
+    $('#btnCopyTxt').addEventListener('click', function () { copyText(txt); });
+    $('#btnDownloadTxt').addEventListener('click', function () { saveTextFile(fn, txt); });
+    $('#mClose2').addEventListener('click', hideModal);
+  }
+  function copyText(text) {
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(text).then(function () { toast('已复制到剪贴板'); }, function () { fallbackCopy(text); });
+    } else { fallbackCopy(text); }
+  }
+  function fallbackCopy(text) {
+    const ta = document.createElement('textarea');
+    ta.value = text; ta.style.position = 'fixed'; ta.style.top = '-9999px'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.focus(); ta.select(); ta.setSelectionRange(0, ta.value.length);
+    try { document.execCommand('copy'); toast('已复制到剪贴板'); }
+    catch (e) { toast('复制失败，请手动框选上方文字复制'); }
+    ta.remove();
+  }
+
+  /* ---------------- 草稿箱 ---------------- */
+  function renderDrafts() {
+    const box = $('#draftsList');
+    const drafts = Store.getDrafts();
+    if (!drafts.length) {
+      box.innerHTML = `<div class="empty"><div class="big">🗂️</div><p>还没有草稿</p><p class="hint">每次生成续写结果后会自动存到这里；也可在「续写」页点「导出 TXT」或「采用并追加」</p></div>`;
+      return;
+    }
+    box.innerHTML = drafts.map(d => {
+      const words = (d.content || '').replace(/\s/g, '').length;
+      const src = d.source === 'adopt' ? '采用' : d.source === 'gen' ? '生成' : '导出';
+      const time = new Date(d.ts).toLocaleString();
+      return `<div class="card" data-did="${d.id}">
+        <div class="row spread"><h3 style="font-size:15px">${esc(d.title || '未命名草稿')}</h3><span class="badge">${src}</span></div>
+        <div class="meta">${esc(d.workTitle || '')} · ${words} 字 · ${time}</div>
+        <div class="row wrap" style="margin-top:10px">
+          <button class="btn sm primary" data-dact="view" data-id="${d.id}">调阅</button>
+          <button class="btn sm danger" data-dact="del" data-id="${d.id}">删除</button>
+        </div></div>`;
+    }).join('');
+  }
+  function viewDraft(id) {
+    const d = Store.getDrafts().find(x => x.id === id); if (!d) return;
+    const words = (d.content || '').replace(/\s/g, '').length;
+    showModal(`<h3>${esc(d.title || '未命名草稿')}</h3>
+      <div class="meta">${esc(d.workTitle || '')} · ${words} 字 · ${new Date(d.ts).toLocaleString()}</div>
+      <textarea id="draftView" readonly style="min-height:320px;width:100%;box-sizing:border-box;margin-top:8px">${esc(d.content || '')}</textarea>
+      <div class="row" style="margin-top:10px">
+        <button class="btn primary" id="btnCopyDraft">复制全部</button>
+        <button class="btn" id="btnDownloadDraft">下载 .txt</button>
+        <button class="btn ghost" id="mClose3">关闭</button></div>`);
+    $('#btnCopyDraft').addEventListener('click', function () { copyText(d.content || ''); });
+    $('#btnDownloadDraft').addEventListener('click', function () {
+      const fn = (d.title || '草稿').replace(/[\\/:*?"<>|]/g, '_') + '.txt';
+      saveTextFile(fn, d.content || '');
+    });
+    $('#mClose3').addEventListener('click', hideModal);
+  }
+  function deleteDraft(id) {
+    const arr = Store.getDrafts().filter(x => x.id !== id);
+    Store.saveDrafts(arr); renderDrafts(); toast('已删除该草稿');
+  }
+
+  /* ---------------- 纠错记忆（越用越聪明） ---------------- */
+  function openRecordFix(orig, fixed) {
+    // 主路径：用户直接用一句话写规则，不要求改稿；orig/fixed 仅当“采用被修改”时才提供，用于可选的 AI 提炼
+    const f = { orig: (orig || '').slice(0, 800), fixed: (fixed || '').slice(0, 800) };
+    const diff = (orig && fixed && orig !== fixed)
+      ? ('原文 ' + (orig.replace(/\s/g, '').length) + ' 字 → 修正 ' + (fixed.replace(/\s/g, '').length) + ' 字')
+      : '';
+    const canAI = !!(f.orig && f.fixed && f.orig !== f.fixed);
+    const origChars = f.orig.replace(/\s/g, '').length, fixedChars = f.fixed.replace(/\s/g, '').length;
+    const aiRow = canAI
+      ? `<div class="row" style="margin:6px 0"><button class="btn" id="fbAISum">AI 从两版差异中提炼</button><span class="meta">${diff}</span></div>`
+      : '';
+    const det = canAI
+      ? `<details style="margin:4px 0"><summary class="meta">附：原文/修改文（${origChars}/${fixedChars} 字，可选查看）</summary>
+        <textarea readonly style="min-height:60px;width:100%">${esc(f.orig)}</textarea>
+        <textarea readonly style="min-height:60px;width:100%">${esc(f.fixed)}</textarea></details>`
+      : '';
+    showModal(`<h3>记一条规则（越用越聪明）</h3>
+      <p class="hint">不必改稿——直接用你的话说清「这次哪里不对 / 以后希望怎么写」即可，下次生成会自动带上。</p>
+      <label class="field"><span class="lbl">规则 / 要求（必填，一句话）</span>
+        <textarea id="fbNote" style="min-height:90px" placeholder="例如：卫烁的恶堕和阉割必须真的写进正文，不要只提及；主角不能用现代网络用语……"></textarea></label>
+      ${aiRow}${det}
+      <div class="row" style="margin:6px 0"><label class="lbl" style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="fbUse" checked> 纳入下次生成</label></div>
+      <div class="row" style="margin-top:10px">
+        <button class="btn primary" id="fbSave">保存</button>
+        <button class="btn ghost" id="mCloseFb">取消</button>
+      </div>`);
+    $('#fbSave').addEventListener('click', () => {
+      const note = $('#fbNote').value.trim();
+      if (!note) { toast('请填写规则说明'); return; }
+      Store.addFeedback({ note, original: f.orig, fixed: f.fixed, summary: diff || '用户直接口述规则', use: $('#fbUse').checked });
+      hideModal(); renderFeedback(); toast('已记录纠错经验');
+    });
+    $('#mCloseFb').addEventListener('click', hideModal);
+    const aiBtn = $('#fbAISum');
+    if (aiBtn) aiBtn.addEventListener('click', async () => {
+      const m = getSelModel();
+      if (!m) { toast('请先在「模型」页配置并选择模型'); return; }
+      aiBtn.disabled = true; aiBtn.textContent = '总结中…';
+      try {
+        const raw = await API.chat({
+          baseUrl: m.baseUrl, apiKey: m.apiKey, model: m.model, proxy: m.proxy,
+          messages: [
+            { role: 'system', content: '你是写作助手。对比「生成原文」与「作者修改后文本」，推断作者修改所体现的写作规则或纠错要求。只输出一条一句话规则（40字以内），不要解释、不要引号、不要任何多余文字。\n重要：规则必须是通用的写作方法论，不要包含本作品的具体人名、地名、专有名词；用「主角 / 反派 / 配角 / 某角色」等通用称谓代替具体名字，使其换一本小说也能用。' },
+            { role: 'user', content: '【生成原文】\n' + f.orig + '\n\n【作者修改后】\n' + f.fixed + '\n\n只输出一句话规则。' }
+          ],
+          temperature: 0.3, maxTokens: 200, stream: false
+        });
+        const t = String(raw || '').trim().replace(/^["'「『]+|["'」』]+$/g, '');
+        if (t) { $('#fbNote').value = t; toast('已提炼，可修改后保存'); }
+        else toast('未提炼出规则，请手动填写');
+      } catch (e) { toast('AI 总结失败：' + e.message); }
+      aiBtn.disabled = false; aiBtn.textContent = 'AI 从两版差异中提炼';
+    });
+  }
+  // 解析「字符串数组」：容错提取 JSON 数组元素（用于 AI 自评返回）
+  function parseStringArray(raw) {
+    if (!raw) return [];
+    let s = String(raw).trim();
+    s = s.replace(/```(?:json)?/g, '').replace(/```/g, '');
+    try { const a = JSON.parse(s); if (Array.isArray(a)) return a.map(x => String(x).trim()).filter(Boolean); } catch (e) {}
+    const i = s.indexOf('['), j = s.lastIndexOf(']');
+    if (i >= 0 && j > i) { try { const a = JSON.parse(s.slice(i, j + 1)); if (Array.isArray(a)) return a.map(x => String(x).trim()).filter(Boolean); } catch (e) {} }
+    // 兜底：按行提取（"1. x" / "- x" / 纯文本）
+    const out = [];
+    s.split(/\r?\n/).forEach(line => { const t = line.replace(/^[\d一二三四五六七八九十]+[.、)]\s*|[-*]\s*/g, '').trim(); if (t && t.length < 60) out.push(t); });
+    return out.slice(0, 12);
+  }
+  async function aiCritique() {
+    const out = ($('#writeOutput').value || '').trim();
+    if (!out) { toast('请先生成续写内容'); return; }
+    const m = getSelModel(); if (!m) { toast('请先在「模型」页配置并选择模型'); return; }
+    const reqs = ($('#inReq').value || '').trim().split(/\n+/).map(s => s.trim()).filter(Boolean);
+    const sys = '你是严格的写作质检员。阅读【本次续写】，对照【作者剧情要求】（如有），找出续写中"要求没做到位 / 文风不符 / 明显可改进"的点。只输出一个 JSON 数组（不要代码块、不要其他文字），每个元素是一条写作规则，30字以内、可执行。\n重要：规则必须是通用的写作方法论，不要包含具体人名、地名、专有名词，用「主角 / 反派 / 配角 / 某角色」等通用称谓代替；例如"反派的黑化必须真实发生，不要只提及"。若一切合格可输出空数组 []。';
+    const user = '【作者剧情要求】\n' + (reqs.length ? reqs.map((r, i) => `${i + 1}. ${r}`).join('\n') : '（无，仅做文风与质量自检）') + '\n\n【本次续写】\n' + out + '\n\n只输出 JSON 数组。';
+    toast('AI 正在扫描续写、找可改进点…');
+    try {
+      const raw = await API.chat({ baseUrl: m.baseUrl, apiKey: m.apiKey, model: m.model, proxy: m.proxy, messages: [{ role: 'system', content: sys }, { role: 'user', content: user }], temperature: 0.4, maxTokens: 800, stream: false });
+      const arr = parseStringArray(raw);
+      if (!arr.length) { toast('AI 未返回可改进点（可能已合格）'); return; }
+      renderCritiqueModal(arr);
+    } catch (e) { toast('AI 找问题失败：' + e.message); }
+  }
+  function renderCritiqueModal(arr) {
+    const idchk = 'rc_' + Date.now().toString(36);
+    const items = arr.map((r, i) => `<label class="row" style="align-items:flex-start;gap:8px;margin:6px 0"><input type="checkbox" data-i="${i}" checked> <span>${esc(r)}</span></label>`).join('');
+    showModal(`<h3>AI 找到这些可改进点</h3>
+      <p class="hint">勾选要记住的（默认全选），采纳后它们会变成纠错经验，下次生成自动带上。扫描的活交给 AI，你只需过一眼。</p>
+      <div id="${idchk}" style="max-height:320px;overflow:auto">${items}</div>
+      <div class="row" style="margin-top:10px">
+        <button class="btn primary" id="rcAdopt">采纳选中</button>
+        <button class="btn ghost" id="mCloseRc">取消</button>
+      </div>`);
+    $('#rcAdopt').addEventListener('click', () => {
+      const sel = Array.from(document.querySelectorAll('#' + idchk + ' input[type=checkbox]')).filter(x => x.checked).map(x => arr[+x.dataset.i]);
+      if (!sel.length) { toast('没有勾选项'); return; }
+      sel.forEach(note => Store.addFeedback({ note, original: '', fixed: '', summary: 'AI 自评发现', use: true }));
+      hideModal(); renderFeedback(); toast('已采纳 ' + sel.length + ' 条经验');
+    });
+    $('#mCloseRc').addEventListener('click', hideModal);
+  }
+  function recordFixFromOutput() {
+    const out = ($('#writeOutput').value || '').trim();
+    if (!out) { toast('请先生成续写内容'); return; }
+    openRecordFix((state.lastGen && state.lastGen.text) || out, out);
+  }
+  async function generalizeAllFeedback() {
+    const list = Store.getFeedbacks();
+    if (!list.length) { toast('还没有可通用化的经验'); return; }
+    const m = getSelModel() || state.models[0];
+    if (!m) { toast('请先在「模型」页配置模型'); return; }
+    if (!confirm('将把所有纠错经验改写为不含具体人名的通用规则，原内容会被覆盖，继续？')) return;
+    const btn = $('#btnGeneralizeFb'); if (btn) btn.disabled = true;
+    let done = 0;
+    try {
+      for (const f of list) {
+        const note = (f.note || '').trim();
+        if (!note) { done++; continue; }
+        try {
+          const raw = await API.chat({
+            baseUrl: m.baseUrl, apiKey: m.apiKey, model: m.model, proxy: m.proxy,
+            messages: [
+              { role: 'system', content: '你是写作规则整理助手。把下面这条「纠错经验 / 写作要求」改写成一条通用的、可跨小说复用的写作规则：去掉具体的人名、地名、专有名词，用「主角 / 反派 / 配角 / 某角色」等通用称谓代替；保持一句话、可执行、30字以内。只输出改写后的一句话，不要解释、不要引号、不要任何多余文字。' },
+              { role: 'user', content: '【原经验】\n' + note + '\n\n只输出改写后的一句话规则。' }
+            ],
+            temperature: 0.3, maxTokens: 200, stream: false
+          });
+          const t = String(raw || '').trim().replace(/^["'「『]+|["'」』]+$/g, '');
+          if (t) Store.updateFeedback(f.id, { note: t, summary: (f.summary ? f.summary + ' · ' : '') + '已通用化' });
+        } catch (e) { /* 单条失败则保留原值 */ }
+        done++;
+        if (done % 3 === 0 || done === list.length) toast(`通用化中 (${done}/${list.length})…`);
+      }
+      renderFeedback();
+      toast('已通用化全部经验：现在换小说也能用了');
+    } finally {
+      if (btn) btn.disabled = false;
+    }
+  }
+  function renderFeedback() {
+    const box = $('#feedbackList'); if (!box) return;
+    const list = Store.getFeedbacks();
+    if (!list.length) {
+      box.innerHTML = `<div class="empty"><div class="big">🧠</div><p>还没有纠错经验</p><p class="hint">在「续写」页生成后，点结果卡片上的「记录本次纠错」，或在采用被修改时按提示保存，经验会累计到这里并自动用于日后生成。</p></div>`;
+      return;
+    }
+    box.innerHTML = list.map(f => {
+      const time = new Date(f.ts).toLocaleString();
+      return `<div class="card" data-fid="${f.id}">
+        <div class="row spread"><span class="badge ${f.use ? 'on' : ''}">${f.use ? '已启用' : '已停用'}</span><span class="meta">${time}</span></div>
+        <div class="fb-note">${esc(f.note || '')}</div>
+        ${f.summary ? '<div class="meta">' + esc(f.summary) + '</div>' : ''}
+        <div class="row wrap" style="margin-top:10px">
+          <button class="btn sm" data-fact="toggle" data-id="${f.id}">${f.use ? '停用' : '启用'}</button>
+          <button class="btn sm danger" data-fact="del" data-id="${f.id}">删除</button>
+        </div></div>`;
+    }).join('');
+  }
+
+  // 最小 DOCX（ZIP）生成器，无外部依赖
+  const Docx = (() => {
+    function crc32Table() {
+      const t = new Uint32Array(256);
+      for (let i = 0; i < 256; i++) { let c = i; for (let k = 0; k < 8; k++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1); t[i] = c >>> 0; }
+      return t;
+    }
+    const CRC = crc32Table();
+    function crc32(b) { let c = 0xFFFFFFFF; for (let i = 0; i < b.length; i++) c = CRC[(c ^ b[i]) & 0xFF] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; }
+    const enc = new TextEncoder();
+    function u8(s) { return enc.encode(s); }
+    function w32(arr, off, v) { arr[off] = v & 0xff; arr[off + 1] = (v >> 8) & 0xff; arr[off + 2] = (v >> 16) & 0xff; arr[off + 3] = (v >> 24) & 0xff; }
+    function w16(arr, off, v) { arr[off] = v & 0xff; arr[off + 1] = (v >> 8) & 0xff; }
+    function zip(files) {
+      const parts = []; let offset = 0; const cd = [];
+      for (const f of files) {
+        const name = u8(f.name);
+        const data = typeof f.data === 'string' ? u8(f.data) : f.data;
+        const crc = crc32(data);
+        const local = new Uint8Array(30 + name.length + data.length);
+        w32(local, 0, 0x04034b50); w16(local, 4, 20); w16(local, 6, 0); w16(local, 8, 0); w16(local, 10, 0); w16(local, 12, 0); w32(local, 14, crc); w32(local, 18, data.length); w32(local, 22, data.length); w16(local, 26, name.length); w16(local, 28, 0);
+        local.set(name, 30); local.set(data, 30 + name.length);
+        parts.push(local);
+        const h = new Uint8Array(46 + name.length);
+        w32(h, 0, 0x02014b50); w16(h, 4, 20); w16(h, 6, 20); w16(h, 8, 0); w16(h, 10, 0); w16(h, 12, 0); w16(h, 14, 0); w32(h, 16, crc); w32(h, 20, data.length); w32(h, 24, data.length); w16(h, 28, name.length); w16(h, 30, 0); w16(h, 32, 0); w16(h, 34, 0); w16(h, 36, 0); w32(h, 38, 0); w32(h, 42, offset);
+        h.set(name, 46);
+        cd.push(h);
+        offset += local.length;
+      }
+      const cdSize = cd.reduce((s, h) => s + h.length, 0);
+      const eocd = new Uint8Array(22);
+      w32(eocd, 0, 0x06054b50); w16(eocd, 4, 0); w16(eocd, 6, 0); w16(eocd, 8, files.length); w16(eocd, 10, files.length); w32(eocd, 12, cdSize); w32(eocd, 16, offset); w16(eocd, 20, 0);
+      return new Blob([...parts, ...cd, eocd], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
+    }
+    function escXml(s) { return s.replace(/[<>&'\"]/g, c => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', "'": '&apos;', '\"': '&quot;' }[c])); }
+    function build(title, text) {
+      const titlePara = `<w:p><w:r><w:rPr><w:b/></w:rPr><w:t>${escXml(title)}</w:t></w:r></w:p>`;
+      const paras = titlePara + text.split(/\r?\n/).filter(x => x.trim()).map(line => `<w:p><w:r><w:t>${escXml(line)}</w:t></w:r></w:p>`).join('');
+      const documentXml = `<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><w:document xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:body>${paras}</w:body></w:document>`;
+      return zip([
+        { name: '[Content_Types].xml', data: `<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><Types xmlns=\"http://schemas.openxmlformats.org/package/2006/content-types\"><Default Extension=\"rels\" ContentType=\"application/vnd.openxmlformats-package.relationships+xml\"/><Default Extension=\"xml\" ContentType=\"application/xml\"/><Override PartName=\"/word/document.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml\"/></Types>` },
+        { name: '_rels/.rels', data: `<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\"><Relationship Id=\"rId1\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument\" Target=\"word/document.xml\"/></Relationships>` },
+        { name: 'word/_rels/document.xml.rels', data: `<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\"></Relationships>` },
+        { name: 'word/document.xml', data: documentXml }
+      ]);
+    }
+    return { build };
+  })();
+
+  // 导出/下载 .txt：桌面端用传统 a.download；移动端优先调系统分享（可“存储到文件”），避免 iOS/Android 把 blob 当网页打开
+  async function saveTextFile(filename, text) {
+    const blob = new Blob(['\ufeff' + text], { type: 'text/plain;charset=utf-8' });
+    if (navigator.share) {
+      const file = new File([blob], filename, { type: 'text/plain;charset=utf-8' });
+      let canShareFile = !navigator.canShare;
+      if (navigator.canShare) { try { canShareFile = navigator.canShare({ files: [file] }); } catch (e) { canShareFile = false; } }
+      if (canShareFile) {
+        try { await navigator.share({ files: [file], title: filename }); toast('已调用系统分享，可「存储到文件」或发给微信/备忘录'); return; }
+        catch (e) { if (e && e.name === 'AbortError') return; }
+      }
+      // 分享不可用（或环境不支持分享文件）：移动端 a.download 会跳转成网页，故改用复制引导
+      toast('当前环境无法直接下载，已为你备好文本，点「复制全部」粘贴到备忘录/文件 App');
+      return;
+    }
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = filename; document.body.appendChild(a); a.click(); a.remove();
+    toast('已开始下载：' + filename);
+  }
+
+  /* ---------------- 模型 ---------------- */
+  function renderModels() {
+    const box = $('#modelsList');
+    if (!state.models.length) { box.innerHTML = `<div class="empty"><div class="big">🔌</div><p>还没有配置模型</p><p class="hint">点上方预设或「新增配置」，填入你的 API Key</p></div>`; return; }
+    box.innerHTML = state.models.map(m => `<div class="card">
+      <div class="row spread"><h3>${esc(m.name)}</h3><span class="badge">${esc(m.model)}</span></div>
+      <div class="meta">${esc(m.baseUrl)}${m.proxy ? ' · 走本地代理' : ''}</div>
+      <div class="row wrap" style="margin-top:10px">
+        <button class="btn sm" data-mact="test" data-id="${m.id}">测试连通</button>
+        <button class="btn sm" data-mact="edit" data-id="${m.id}">编辑</button>
+        <button class="btn sm danger" data-mact="del" data-id="${m.id}">删除</button>
+      </div></div>`).join('');
+  }
+  function modelForm(m) {
+    m = m || { name: '', baseUrl: '', apiKey: '', model: '', proxy: false };
+    showModal(`<h3>${m.id ? '编辑模型' : '新增模型配置'}</h3>
+      <label class="field"><span class="lbl">名称（自定义，便于识别）</span><input id="fName" value="${esc(m.name)}"></label>
+      <label class="field"><span class="lbl">API Base URL</span><input id="fBase" value="${esc(m.baseUrl)}" placeholder="https://api.deepseek.com"></label>
+      <label class="field"><span class="lbl">API Key（仅存本机）</span><input id="fKey" type="password" value="${esc(m.apiKey)}" placeholder="sk-..."></label>
+      <label class="field"><span class="lbl">模型名</span><input id="fModel" value="${esc(m.model)}" placeholder="deepseek-chat"></label>
+      <label class="field"><span class="lbl">绕过浏览器跨域（CORS）</span>
+        <div class="chips" id="fProxy"><span class="chip ${m.proxy ? 'on' : ''}" data-v="1">电脑本地代理（手机不要开）</span></div></label>
+      <div class="row">
+        <button class="btn primary grow" id="fSave">保存</button>
+        <button class="btn" id="mClose">取消</button>
+      </div>
+      <p class="hint"><b>手机上不要开。</b> 绝大多数情况直接点「测试连通」即可；只有<b>电脑浏览器</b>提示跨域（CORS）错误时，才需要在同一台电脑运行 <span class="kbd">python3 proxy/server.py</span> 后再开启。本地代理对手机无效。</p>`);
+    // 代理开关是“开/关”切换（不是单选组）。单芯片用 bindChipGroup 会“先全清再选中”，导致永远关不掉
+    $('#fProxy').addEventListener('click', e => {
+      const c = e.target.closest('.chip'); if (!c) return;
+      c.classList.toggle('on'); m.proxy = c.classList.contains('on');
+    });
+    $('#fSave').addEventListener('click', () => {
+      m.name = $('#fName').value.trim() || $('#fModel').value.trim() || '未命名模型';
+      m.baseUrl = $('#fBase').value.trim(); m.apiKey = $('#fKey').value.trim(); m.model = $('#fModel').value.trim();
+      if (!m.baseUrl || !m.apiKey || !m.model) { toast('请填齐 Base URL / Key / 模型名'); return; }
+      if (!m.id) { m.id = uid(); state.models.push(m); } else { const i = state.models.findIndex(x => x.id === m.id); state.models[i] = m; }
+      persistModels(); renderModels(); hideModal(); toast('已保存');
+    });
+    $('#mClose').addEventListener('click', hideModal);
+  }
+  async function testModel(id) {
+    const m = state.models.find(x => x.id === id); if (!m) return;
+    toast('正在测试连通……');
+    try { const r = await API.test({ baseUrl: m.baseUrl, apiKey: m.apiKey, model: m.model, proxy: m.proxy }); toast('✅ 连通成功：' + (r || '').slice(0, 20)); }
+    catch (e) { toast('❌ 失败：' + e.message); }
+  }
+
+  /* ---------------- 设置 ---------------- */
+  function renderSettings() {
+    const s = state.settings;
+    $('#setTheme').value = s.theme;
+    $('#setChars').value = s.defaultChars;
+    $('#setSample').value = s.sampleChapters;
+    $('#setTemp').value = s.temperature; $('#setTempVal').textContent = s.temperature;
+    setChips('#setStrength', s.styleStrength);
+    setChips('#setPOV', s.keepPOV);
+    $('#setHook').classList.toggle('on', s.endHook);
+    $('#setProxy').classList.toggle('on', s.proxy);
+    $('#setAutoLearn').classList.toggle('on', s.autoLearn);
+    const gc = GitHubSync.getCfg();
+    $('#ghOwner').value = gc.owner; $('#ghRepo').value = gc.repo;
+    $('#ghBranch').value = gc.branch || 'main'; $('#ghPath').value = gc.path || 'novel-writer-data.json';
+    $('#ghToken').value = gc.token;
+    $('#ghAutoBtn').textContent = '自动同步：' + (gc.auto ? '开' : '关');
+    $('#ghStatus').textContent = GitHubSync.configured() ? '已配置，可点「测试连接」。' : '未配置（填写上方并点保存设置）。';
+  }
+  function saveSettingsFromUI() {
+    const s = state.settings;
+    s.theme = $('#setTheme').value;
+    s.defaultChars = parseInt($('#setChars').value, 10) || 10000;
+    s.sampleChapters = Math.max(1, parseInt($('#setSample').value, 10) || 10);
+    s.temperature = parseFloat($('#setTemp').value) || 0.85;
+    s.styleStrength = $('#setStrength .on').dataset.v;
+    s.keepPOV = $('#setPOV .on').dataset.v;
+    s.endHook = $('#setHook').classList.contains('on');
+    s.proxy = $('#setProxy').classList.contains('on');
+    s.autoLearn = $('#setAutoLearn').classList.contains('on');
+    Store.saveSettings(s); applyTheme();
+  }
+
+  /* ---------------- chip 工具 ---------------- */
+  function setChips(sel, val) { $$(sel + ' .chip').forEach(c => c.classList.toggle('on', c.dataset.v === val)); }
+  function bindChipGroup(sel, cb) {
+    const box = $(sel);
+    box.addEventListener('click', e => {
+      const c = e.target.closest('.chip'); if (!c) return;
+      if (box.dataset.single !== '0') $$('.chip', box).forEach(x => x.classList.remove('on'));
+      c.classList.add('on'); if (cb) cb(c.dataset.v || (c.classList.contains('on') ? 1 : 0));
+    });
+  }
+
+  /* ---------------- modal ---------------- */
+  function showModal(html) { const m = $('#modal'); m.innerHTML = `<div class="mask" id="mMask"></div><div class="panel">${html}</div>`; m.classList.add('show'); $('#mMask').addEventListener('click', hideModal); }
+  function hideModal() { const m = $('#modal'); m.classList.remove('show'); m.innerHTML = ''; }
+
+  /* ---------------- 事件绑定 ---------------- */
+  function bind() {
+    $$('.tabbar .tab').forEach(t => t.addEventListener('click', () => switchTab(t.dataset.tab)));
+
+    // 作品页
+    $('#btnAdd').addEventListener('click', () => {
+      let text = $('#pasteText').value;
+      const f = $('#fileInput').files[0];
+      const finish = (txt) => { const w = addWorkFromText(txt, $('#inTitle').value.trim(), $('#inAuthor').value.trim()); if (w) { toast('已存入：' + w.title); $('#pasteText').value = ''; $('#fileInput').value = ''; renderWorks(); } };
+      if (f) { const r = new FileReader(); r.onload = () => finish(r.result); r.readAsText(f); }
+      else finish(text);
+    });
+    $('#btnClearPaste').addEventListener('click', () => { $('#pasteText').value = ''; $('#fileInput').value = ''; });
+
+    $('#worksList').addEventListener('click', e => {
+      const b = e.target.closest('[data-act]'); if (!b) return;
+      const id = b.dataset.id;
+      if (b.dataset.act === 'continue') { state.currentWorkId = id; switchTab('write'); }
+      else if (b.dataset.act === 'view') viewChapters(id);
+      else if (b.dataset.act === 'del') { if (confirm('确定删除该作品？此操作不可恢复。')) { state.works = state.works.filter(w => w.id !== id); persistWorks(); renderWorks(); toast('已删除'); } }
+    });
+
+    $('#draftsList').addEventListener('click', e => {
+      const b = e.target.closest('[data-dact]'); if (!b) return;
+      const id = b.dataset.id;
+      if (b.dataset.dact === 'view') viewDraft(id);
+      else if (b.dataset.dact === 'del') { if (confirm('删除这条草稿？')) deleteDraft(id); }
+    });
+    $('#btnClearDrafts').addEventListener('click', () => {
+      if (confirm('清空草稿箱全部内容？此操作不可恢复。')) { Store.saveDrafts([]); renderDrafts(); toast('草稿箱已清空'); }
+    });
+
+    // 纠错记忆
+    $('#feedbackList').addEventListener('click', e => {
+      const b = e.target.closest('[data-fact]'); if (!b) return;
+      const id = b.dataset.id; const f = Store.getFeedbacks().find(x => x.id === id);
+      if (b.dataset.fact === 'toggle') { if (f) Store.updateFeedback(id, { use: !f.use }); renderFeedback(); }
+      else if (b.dataset.fact === 'del') { if (confirm('删除这条纠错经验？')) { Store.delFeedback(id); renderFeedback(); } }
+    });
+    $('#btnRecordFix').addEventListener('click', recordFixFromOutput);
+    $('#btnAiCritique').addEventListener('click', aiCritique);
+    $('#btnAddFeedback').addEventListener('click', () => openRecordFix('', ''));
+    $('#btnGeneralizeFb').addEventListener('click', generalizeAllFeedback);
+
+    $('#selWork').addEventListener('change', () => {
+      const w = getSelWork(); if (w) fillChapterSelect(w);
+      state.settings.lastWorkId = w ? w.id : null; Store.saveSettings(state.settings);
+    });
+    $('#selModel').addEventListener('change', () => {
+      const m = getSelModel();
+      state.settings.lastModelId = m ? m.id : null; Store.saveSettings(state.settings);
+    });
+    $('#selStyleWork').addEventListener('change', () => {
+      state.settings.styleWorkId = $('#selStyleWork').value || null; Store.saveSettings(state.settings);
+    });
+
+    // GitHub 同步
+    $('#ghSave').addEventListener('click', () => { const gc = GitHubSync.getCfg(); gc.owner = $('#ghOwner').value.trim(); gc.repo = $('#ghRepo').value.trim(); gc.branch = $('#ghBranch').value.trim() || 'main'; gc.path = $('#ghPath').value.trim() || 'novel-writer-data.json'; gc.token = $('#ghToken').value.trim(); GitHubSync.setCfg(gc); toast('已保存同步设置'); });
+    $('#ghTest').addEventListener('click', async () => { GitHubSync.status('连接测试中…'); const r = await GitHubSync.test(); GitHubSync.status(r.ok ? '✅ 连接成功：' + r.msg : '❌ ' + r.msg); toast(r.ok ? '连接成功' : '连接失败'); });
+    $('#ghPush').addEventListener('click', async () => { GitHubSync.status('上传中…'); const r = await GitHubSync.pushCurrent(); GitHubSync.status(r.ok ? '✅ 已上传到 GitHub' : '❌ ' + r.msg); toast(r.ok ? '已上传' : '上传失败'); });
+    $('#ghPull').addEventListener('click', async () => { GitHubSync.status('拉取合并中…'); const r = await GitHubSync.pullMerge(); GitHubSync.status(r.ok ? '✅ ' + r.msg : '❌ ' + r.msg); if (r.ok) { load(); renderWorks(); renderModels(); renderSettings(); renderFeedback(); renderDrafts(); toast('已合并：' + r.msg); } else toast('拉取失败'); });
+    $('#ghAutoBtn').addEventListener('click', () => { const gc = GitHubSync.getCfg(); gc.auto = !gc.auto; GitHubSync.setCfg(gc); $('#ghAutoBtn').textContent = '自动同步：' + (gc.auto ? '开' : '关'); toast('自动同步：' + (gc.auto ? '开' : '关')); });
+
+    // 续写页
+    $('#btnWrite').addEventListener('click', doWrite);
+    $('#btnStop').addEventListener('click', () => { if (state.abort) state.abort.abort(); });
+    $('#btnAdopt').addEventListener('click', adopt);
+    $('#btnSaveDocx').addEventListener('click', exportTxt);
+    $('#btnExportAll').addEventListener('click', exportAllTxt);
+    $('#btnRedo').addEventListener('click', doWrite);
+    $('#btnDiscard').addEventListener('click', () => { $('#writeOutput').value = ''; setGenButtons('idle'); });
+    $('#inTemp').addEventListener('input', e => $('#tempVal').textContent = e.target.value);
+    bindChipGroup('#chipStrength'); bindChipGroup('#chipPOV');
+    $('#chipHook').addEventListener('click', () => $('#chipHook').classList.toggle('on'));
+
+    // 模型页
+    $$('.model-preset .chip').forEach(c => c.addEventListener('click', () => {
+      const p = PRESETS[c.dataset.preset]; modelForm(p.id ? Object.assign({ id: null }, p) : { name: '', baseUrl: '', apiKey: '', model: '', proxy: false });
+    }));
+    $('#btnAddModel').addEventListener('click', () => modelForm(null));
+    $('#modelsList').addEventListener('click', e => {
+      const b = e.target.closest('[data-mact]'); if (!b) return;
+      const id = b.dataset.id; const m = state.models.find(x => x.id === id);
+      if (b.dataset.mact === 'edit') modelForm(Object.assign({}, m));
+      else if (b.dataset.mact === 'del') { if (confirm('删除该模型配置？')) { state.models = state.models.filter(x => x.id !== id); persistModels(); renderModels(); toast('已删除'); } }
+      else if (b.dataset.mact === 'test') testModel(id);
+    });
+
+    // 设置页
+    $('#setTemp').addEventListener('input', e => $('#setTempVal').textContent = e.target.value);
+    bindChipGroup('#setStrength'); bindChipGroup('#setPOV');
+    $('#setHook').addEventListener('click', () => $('#setHook').classList.toggle('on'));
+    $('#setProxy').addEventListener('click', () => $('#setProxy').classList.toggle('on'));
+    $('#setAutoLearn').addEventListener('click', () => $('#setAutoLearn').classList.toggle('on'));
+    ['setTheme', 'setChars', 'setSample', 'setTemp', 'setStrength', 'setPOV', 'setHook', 'setProxy', 'setAutoLearn'].forEach(id => {
+      $('#' + id).addEventListener('change', saveSettingsFromUI);
+    });
+    $('#btnExport').addEventListener('click', () => {
+      const blob = new Blob([Store.exportAll()], { type: 'application/json' });
+      const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'novel-writer-backup.json'; a.click();
+      toast('已导出备份');
+    });
+    $('#btnImport').addEventListener('click', () => {
+      const inp = document.createElement('input'); inp.type = 'file'; inp.accept = 'application/json';
+      inp.onchange = () => { const f = inp.files[0]; if (!f) return; const r = new FileReader(); r.onload = () => { try { Store.importAll(r.result); load(); renderWorks(); renderModels(); renderSettings(); toast('导入成功'); } catch (e) { toast('导入失败：' + e.message); } }; r.readAsText(f); };
+      inp.click();
+    });
+    $('#btnWipe').addEventListener('click', () => {
+      if (confirm('清空全部作品、模型与设置？此操作不可恢复，建议先导出备份。')) {
+        localStorage.removeItem('nw_works'); localStorage.removeItem('nw_models'); localStorage.removeItem('nw_settings'); localStorage.removeItem('nw_drafts'); load(); renderWorks(); renderModels(); renderSettings(); renderDrafts(); toast('已全部清空');
+      }
+    });
+  }
+
+  function init() {
+    if (window.__nwInited) return; window.__nwInited = true;
+    load(); applyTheme(); bind();
+    if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+      navigator.serviceWorker.register('sw.js').catch(() => {});
+    }
+    // 切到后台 / 其它网站时，浏览器会暂停本页的网络与计时，续写可能卡住。
+    // 这里给出明确提示，并在返回前台时提醒“会自动续上”。
+    document.addEventListener('visibilitychange', () => {
+      if (state.abort && !state.abort.signal.aborted) {
+        if (document.hidden) toast('⚠️ 已切到后台：桌面端会在后台继续写，手机离开浏览器可能暂停（返回即自动续上）');
+        else toast('已返回前台，续写继续中');
+      }
+    });
+    renderWorks();
+    if (GitHubSync.configured()) { GitHubSync.initAuto(); GitHubSync.maybePullEmpty(); }
+  }
+  document.addEventListener('DOMContentLoaded', init);
+})();
+
+</script>
+
+<script data-page-node-id="Xr2GVBjSFsL7ZMPkOkHg5k" data-pnid-children="lEqMEgN17g47MU7uj7Tpg5">
+// 登录保护：用户名「福多多」/ 密码「666888」，仅限本人使用
+(function () {
+  const USER = '福多多', PASS = '666888';
+  const LSKey = 'nw_lock_exp', SSKey = 'nw_lock_sess';
+  const lock = document.getElementById('lock');
+  const hideLock = () => lock.classList.add('hide');
+  const showLock = () => lock.classList.remove('hide');
+  function isAuthed() {
+    try { if (sessionStorage.getItem(SSKey) === '1') return true; } catch (e) {}
+    try { const exp = parseInt(localStorage.getItem(LSKey) || '0', 10); if (exp && Date.now() < exp) return true; } catch (e) {}
+    return false;
+  }
+  function doLogin() {
+    const u = document.getElementById('loginUser').value.trim();
+    const p = document.getElementById('loginPass').value;
+    const err = document.getElementById('loginErr');
+    if (u !== USER) { err.textContent = '用户名不正确'; return; }
+    if (p !== PASS) { err.textContent = '密码不正确'; return; }
+    err.textContent = '';
+    try { sessionStorage.setItem(SSKey, '1'); } catch (e) {}
+    if (document.getElementById('loginRem').checked) {
+      try { localStorage.setItem(LSKey, String(Date.now() + 7 * 864e5)); } catch (e) {}
+    } else {
+      try { localStorage.removeItem(LSKey); } catch (e) {}
+    }
+    hideLock();
+  }
+  window.logout = function () {
+    try { sessionStorage.removeItem(SSKey); localStorage.removeItem(LSKey); } catch (e) {}
+    document.getElementById('loginPass').value = '';
+    document.getElementById('loginUser').value = '';
+    showLock();
+  };
+  if (isAuthed()) hideLock(); else showLock();
+  document.getElementById('loginBtn').addEventListener('click', doLogin);
+  ['loginUser', 'loginPass'].forEach(function (id) {
+    document.getElementById(id).addEventListener('keydown', function (e) { if (e.key === 'Enter') doLogin(); });
+  });
+  const lb = document.getElementById('btnLogout');
+  if (lb) lb.addEventListener('click', window.logout);
+})();
+</script>
+<script data-page-node-id="foHy3zUkiDVP2gm5HKVJx0" data-pnid-children="e9p7YPs0jINq0vzkUSklUP">
+// ===== 防丢稿增强（针对 file:// / 隐私模式下的内存兜底） =====
+(function () {
+  function probeLS() {
+    try {
+      var k = '__nw_probe2__';
+      localStorage.setItem(k, '1');
+      localStorage.removeItem(k);
+      return true;
+    } catch (e) { return false; }
+  }
+  var safe = probeLS();
+  var banner = document.createElement('div');
+  banner.id = 'nwSafeBanner';
+  banner.style.cssText = 'position:fixed;left:0;right:0;top:0;z-index:9999;padding:10px 14px;font-size:13px;line-height:1.55;text-align:center;box-shadow:0 2px 10px rgba(0,0,0,.18)';
+  if (!safe) {
+    banner.style.background = '#e5484d';
+    banner.style.color = '#fff';
+    banner.innerHTML = '⚠️ 当前为本地文件(file://)或隐私模式：数据只存内存，关闭/崩溃即丢失！请点右上角「导出备份」，或改用资料库链接。已开启：每次改动自动备份到「下载」文件夹（文件名 小说续写助手-自动备份.json）。';
+  } else {
+    banner.style.background = '#2e9e5b';
+    banner.style.color = '#fff';
+    banner.innerHTML = '✅ 存储安全：数据已写入本机浏览器（换设备/清缓存仍会丢，建议定期「导出备份」）。';
+    setTimeout(function () { banner.style.transition = 'opacity .6s'; banner.style.opacity = '0'; setTimeout(function () { banner.remove(); }, 700); }, 4000);
+  }
+  document.body.appendChild(banner);
+
+  // 自动备份：任意改动后防抖下载到固定文件，磁盘留底
+  var dirty = false, timer = null;
+  function markDirty() { dirty = true; if (!timer) timer = setTimeout(backup, 6000); }
+  ['saveWorks', 'saveModels', 'saveSettings'].forEach(function (fn) {
+    var orig = Store[fn];
+    if (typeof orig === 'function') {
+      Store[fn] = function () {
+        var r = orig.apply(this, arguments);
+        markDirty();
+        return r;
+      };
+    }
+  });
+  function backup() {
+    timer = null;
+    if (!dirty) return;
+    try {
+      var blob = new Blob([Store.exportAll()], { type: 'application/json' });
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = '小说续写助手-自动备份.json';
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+      dirty = false;
+      var ts = new Date().toLocaleTimeString();
+      var tip = document.getElementById('nwSafeBanner');
+      if (tip) tip.innerHTML = (safe ? '✅ 存储安全。' : '⚠️ 内存模式易丢。') + ' 已自动备份至「下载」文件夹（' + ts + '）。';
+    } catch (e) { /* 浏览器拦截下载时静默忽略，下次改动再试 */ }
+  }
+  window.addEventListener('beforeunload', function () { if (dirty) backup(); });
+})();
+</script>
+</body>
+</html>
