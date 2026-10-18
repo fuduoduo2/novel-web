@@ -287,10 +287,12 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--primary); o
           <div class="row" style="margin-top:8px"><button class="btn ghost" id="btnClearReqHist">清空记录</button></div>
         </div>
         <div data-page-node-id="aMAuiIswTl1zYkLO0p3ZzF" class="card">
-          <div data-page-node-id="2uGnBBpQnOa7fsUb49soFx" class="row spread">
-            <button data-page-node-id="yQRc2AbUWmSkCa3Ix9ZmS7" class="btn primary grow" id="btnWrite"><!--pnid:YfFlmvy1FmZI7pYBZev92Z-->开始续写</button>
+          <div data-page-node-id="2uGnBBpQnOa7fsUb49soFx" class="row wrap">
+            <button data-page-node-id="yQRc2AbUWmSkCa3Ix9ZmS7" class="btn primary" id="btnWrite"><!--pnid:YfFlmvy1FmZI7pYBZev92Z-->开始续写</button>
+            <button class="btn primary" id="btnContinue">🔁 接着上文续写</button>
             <button data-page-node-id="Zbswik2WiMzrB4fuzARCmE" class="btn danger" disabled id="btnStop"><!--pnid:q6nq6I5qF84xPZarxpCkeN-->停止</button>
           </div>
+          <div class="hint" style="margin-top:6px">「开始续写」从选定章节全新生成；「🔁 接着上文续写」在你当前文本框内容后面继续写（原内容原样保留），可反复叠加新需求。生成后点「采用并追加」保存；续写模式下的「采用」会更新本章而非重复新增。</div>
           <div data-page-node-id="1HLCIr1IjTk814lRdebNhz" class="progress"><i data-page-node-id="gYr9WCrozpakDn8pif1ZkG" id="progBar"></i></div>
           <label data-page-node-id="J9lYQ8GSEJM4rtQLNYlEDT" class="field" style="margin-top:8px"><span data-page-node-id="H5L2GvD0F41ZvDZBkK93If" class="lbl"><!--pnid:xuv8SQPGVA3zunCpSjZcQE-->续写结果（可编辑）</span>
             <textarea data-page-node-id="jqYKTaeE48zhq17WPmvj2h" disabled id="writeOutput" placeholder="点击「开始续写」后，结果会在这里流式显示……" style="min-height:220px"></textarea></label>
@@ -506,6 +508,10 @@ const Store = (() => {
       if (arr.length > 100) arr.length = 100;
       set(K.reqHistory, arr);
       return arr;
+    },
+    updateReqHistory: (id, patch) => {
+      const arr = get(K.reqHistory, []).map(r => r.id === id ? Object.assign({}, r, patch) : r);
+      set(K.reqHistory, arr); return arr;
     },
     exportAll: () => JSON.stringify({
       _type: 'novel-writer-backup',
@@ -1037,12 +1043,13 @@ ${relayReq}直接输出续写正文（自然接在前面之后，不要另起重
     $('#inTemp').value = state.settings.temperature; $('#tempVal').textContent = state.settings.temperature;
   }
   function updateProgress(full, chars) {
-    const n = (full || '').replace(/\s/g, '').length;
+    const n = Math.max(0, (full || '').replace(/\s/g, '').length - (state.genBaseLen || 0));
     const pct = Math.min(100, Math.round(n / chars * 100));
     $('#progBar').style.width = pct + '%';
   }
   function setGenButtons(mode) {
     $('#btnWrite').disabled = mode === 'writing';
+    if ($('#btnContinue')) $('#btnContinue').disabled = mode === 'writing';
     if ($('#btnRecordFix')) $('#btnRecordFix').disabled = mode !== 'done';
     if ($('#btnAiCritique')) $('#btnAiCritique').disabled = mode !== 'done';
     $('#btnStop').disabled = mode !== 'writing';
@@ -1106,7 +1113,23 @@ ${relayReq}直接输出续写正文（自然接在前面之后，不要另起重
     return full;
   }
 
-  async function doWrite() {
+  async function chatSmart(m, messages, maxTokens, temperature) {
+    // 智能调用：先非流式；若返回为空（常见于「深度思考」类模型把输出字数全花在思考上，正文为空），
+    // 自动改用流式重试——流式只收集正文 delta.content、忽略思考内容，因此能拿到真正答案。
+    let raw = '';
+    try {
+      raw = await API.chat({
+        baseUrl: m.baseUrl, apiKey: m.apiKey, model: m.model, proxy: m.proxy,
+        messages, temperature: temperature || 0.3, maxTokens: maxTokens || 4096, stream: false
+      });
+    } catch (e) { raw = ''; }
+    if (raw && String(raw).trim()) return raw;
+    try {
+      return await streamChunk(messages, maxTokens || 4096, temperature || 0.3, m, null, null);
+    } catch (e) { return raw; }
+  }
+
+  async function doWrite(baseText) {
     const w = getSelWork(); if (!w) { toast('请先选择作品'); return; }
     const m = getSelModel(); if (!m) { toast('请先在「模型」页配置并选择模型'); return; }
     const targetIdx = parseInt($('#selChapter').value, 10);
@@ -1134,22 +1157,30 @@ ${relayReq}直接输出续写正文（自然接在前面之后，不要另起重
     const fbList = Store.getFeedbacks().filter(f => f.use);
     const context = Novel.buildContext(w.chapters, targetIdx, sample);
     const totalChunks = Math.max(1, Math.ceil(chars / CHUNK_CHARS));
+    const maxChunks = Math.max(30, totalChunks * 3);   // 保险上限：模型每段常写不满目标字数，按目标段数×3放大，避免大目标被 60 段旧上限掐断
 
     if (chars > 20000) toast(`目标 ${chars} 字较多，将分 ${totalChunks} 段生成，请尽量保持页面在前台`);
 
-    state.lastGen = { workId: w.id, targetIdx, text: '' };
-    const out = $('#writeOutput'); out.value = ''; out.disabled = true;
+    const isContinue = !!(baseText && baseText.replace(/\s/g, '').length);
+    const baseContent = (w.chapters[targetIdx] && w.chapters[targetIdx].content) || '';
+    state.lastGen = { workId: w.id, targetIdx, text: '', isContinue, baseContent };
+    const out = $('#writeOutput');
+    out.value = isContinue ? baseText : '';   // 续写模式：保留原有内容，接着往后写，不清除
+    out.disabled = true;
     $('#inNewTitle').value = Novel.nextTitle(w.chapters);
     const reqBox = $('#reqCheckBox'); reqBox.style.display = 'none'; reqBox.innerHTML = '';
     setGenButtons('writing');
     state.abort = new AbortController();
-    let acc = '', failChunk = 0, lastErr = '';
+    const baseLen = isContinue ? baseText.replace(/\s/g, '').length : 0;
+    state.genBaseLen = baseLen;   // 进度条按"新增字数"计，而非累计字数
+    let acc = isContinue ? baseText : '', failChunk = 0, lastErr = '';
     try {
       for (let c = 1; ; c++) {
         const doneChars = acc.replace(/\s/g, '').length;
-        if (doneChars >= chars) break;
-        const thisTarget = Math.min(CHUNK_CHARS, chars - doneChars);
-        const isLast = (doneChars + thisTarget) >= chars;
+        const addedChars = isContinue ? Math.max(0, doneChars - baseLen) : doneChars;
+        if (addedChars >= chars) break;
+        const thisTarget = Math.min(CHUNK_CHARS, chars - addedChars);
+        const isLast = (addedChars + thisTarget) >= chars;
         const maxTokens = Math.ceil(thisTarget * 1.7) + 256;
         const tail = acc.length ? acc.slice(-1600) : '';
         const messages = Prompt.buildMessages({
@@ -1178,25 +1209,28 @@ ${relayReq}直接输出续写正文（自然接在前面之后，不要另起重
           }
         }
         if (!ok) { failChunk = c; break; } // 失败原因统一到循环外如实提示，避免“已达到上限”误导
-        if (c >= 60) break;                // 保险上限：异常情况下不无限循环请求
+        if (c >= maxChunks) break;         // 保险上限：异常情况下不无限循环请求
         if (!isLast) await sleep(400); // 段间稍作停顿，避免触发接口限流
       }
       setGenButtons('done');
       if (state.lastGen) state.lastGen.text = out.value;
       saveGenToDraft();
       if (reqList.length) {
-        let guard = 0, unmetCount = 0;
+        let guard = 0, finalResults = null;
         while (guard < 3) {
           let results = null;
           try { results = await reviewRequirements(m, out.value, reqList); } catch (e) {}
-          if (!results) { toast('剧情要求核对暂未完成（网络或模型波动），可点「重新生成」再核对一次'); break; }
-          const unmet = results.filter(r => !r.met).map(r => r.req);
-          unmetCount = unmet.length;
-          if (!unmetCount) break;
+          if (!results) { toast('剧情要求核对暂未完成（网络或模型波动），可点结果卡片里的「重新核对」再试'); break; }
+          finalResults = results;
+          const unmet = results.filter(r => !r.met);
+          if (!unmet.length) break;
+          const posUnmet = unmet.filter(r => r.type !== 'neg').map(r => r.req);
+          if (!posUnmet.length) break; // 仅剩约束类未满足：无法靠"追加"修正，停止空转，避免浪费
           guard++;
-          toast(`剧情要求有 ${unmetCount} 条未充分体现，正在自动补全（第 ${guard}/3 次）…`);
+          const sig = state.abort ? state.abort.signal : null;
           try {
-            const appended = await appendMissing(m, out.value, unmet, temp, state.abort ? state.abort.signal : null);
+            toast(`有 ${posUnmet.length} 条剧情未体现，正在追加补全（第 ${guard}/3 次）…`);
+            const appended = await appendMissing(m, out.value, posUnmet, temp, sig);
             if (!appended || !appended.replace(/\s/g, '')) { lastErr = '补全段落返回空'; break; }
             // out.value 已在 appendMissing 内实时更新（= 原文 + 补全段），这里只同步状态
             state.lastGen.text = out.value;
@@ -1204,38 +1238,94 @@ ${relayReq}直接输出续写正文（自然接在前面之后，不要另起重
             saveGenToDraft();
           } catch (e) { if (e.name === 'AbortError') throw e; lastErr = e.message; break; }
         }
-        if (unmetCount) toast(`已尽力补全：仍有 ${unmetCount} 条未体现，可点「重新生成」再试一次`);
-        else toast('✅ 全部剧情要求已落实到正文');
+        if (finalResults) {
+          const leftAll = finalResults.filter(r => !r.met);
+          const leftNeg = leftAll.filter(r => r.type === 'neg').length;
+          const leftPos = leftAll.filter(r => r.type !== 'neg').length;
+          if (leftAll.length) {
+            let msg = `已尽力补全：仍有 ${leftAll.length} 条未体现。`;
+            if (leftNeg) msg += ` 其中 ${leftNeg} 条为约束类（如"不要出现无关人物"），无法靠追加修正——直接在文本框删去违反处即可，或重新生成整章（较费 token）；也可点「沉淀为经验」让下次生成重点规避。`;
+            if (leftPos) msg += ` 剧情类可点「追加补全」继续（不删原文），别点「重新生成」。`;
+            else msg += ` 别点「重新生成」，那会整章重写。`;
+            toast(msg);
+          } else toast('✅ 全部剧情要求已落实到正文');
+        }
       }
-      if (acc.replace(/\s/g, '').length < chars) {
-        toast(failChunk
-          ? `第 ${failChunk} 段连续重连失败（${lastErr || '接口异常'}），已完成内容已保留，可点「重新生成」继续补全`
-          : '已达到可生成上限，可点「重新生成」继续补全');
+      if ((acc.replace(/\s/g, '').length - baseLen) < chars) {
+        const remaining = chars - (acc.replace(/\s/g, '').length - baseLen);
+        const ic = $('#inChars'); if (ic) ic.value = remaining;   // 预填剩余字数，方便直接接着写
+        toast((failChunk
+          ? `第 ${failChunk} 段连续重连失败（${lastErr || '接口异常'}）。`
+          : '本次未写满目标字数。')
+          + `已完成内容已保留，已把目标字数改为剩余约 ${remaining} 字——点「🔁 接着上文续写」即可接着写完（原内容不动），别点「重新生成」（那会清空重来）`);
       } else if (!reqList.length) toast('续写完成，可编辑后「采用」');
     } catch (e) {
       if (e.name === 'AbortError') { toast('已停止，已完成内容已保留在文本框'); setGenButtons('done'); saveGenToDraft(); }
       else { out.value = (out.value || '') + '\n【生成失败】' + e.message; setGenButtons('done'); toast('生成失败：' + e.message); }
     }
   }
+  async function continueWrite() {
+    // 接着上文续写：以文本框当前内容为基础（绝不清除），在其末尾追加新生成内容，
+    // 仅对本次新填的「剧情要求」做核对/补全。可反复叠加，原内容始终保留。
+    const out = $('#writeOutput');
+    const base = out.value || '';
+    if (!base.replace(/\s/g, '')) { toast('文本框为空，没有可接着写的内容——请先点「开始续写」，或把已有正文粘进文本框'); return; }
+    if (!getSelWork()) { toast('请先在上方选择作品（用于锚定文风与人物，续写才不会跑偏）'); return; }
+    toast('将在当前内容末尾接着续写，原有内容全部保留');
+    await doWrite(base);
+  }
 
   /* ---------------- 剧情要求自检（生成后由模型逐条核对） ---------------- */
   let lastReviewCtx = null; // {m,text,reqs} 供「重新核对」复用
   let lastReqCheckResults = []; // 最近一次核对结果，供「沉淀为经验」引用
+  // 超长正文分段核对：每段独立调用模型判断，再按条合并——
+  // 正向要求（剧情要发生）：任一段体现即算已体现（OR）；约束类要求（不要出现某内容）：任一段违反即算未满足（AND）
+  async function reviewLongText(m, text, reqs) {
+    const SEG = 9000, OVERLAP = 300;
+    const clean = text.replace(/\s/g, '').length;
+    const segs = [];
+    for (let i = 0; i < text.length; i += SEG) segs.push(text.slice(i, i + SEG + OVERLAP));
+    const merged = reqs.map(r => ({ req: r, met: isNegativeReq(r), note: '', type: isNegativeReq(r) ? 'neg' : 'pos' }));
+    const sys = '你是严格的小说续写质检员。给你作者的若干条「剧情要求」（每条一行，带序号）以及长篇正文的其中一段。逐条核对：正向要求（要求发生某剧情）只有在本段中「已发生或正在发生」且有具体场景/动作/结果描写才算已体现（met 为 true），仅提及、暗示、铺垫、转述算未体现；约束类要求（"不要/不得出现某内容"）在本段未出现该内容则 met 为 true，出现了为 false。本段没写到的条目 met 一律为 false。直接输出结果，不要输出任何思考过程或分析。';
+    for (let s = 0; s < segs.length; s++) {
+      const listText = reqs.map((r, i) => `${i + 1}. ${r}`).join('\n');
+      const user = `【作者要求】\n${listText}\n\n【本段正文】（第 ${s + 1}/${segs.length} 段）\n${segs[s]}\n\n请只输出一个 JSON 数组，不要输出其他任何内容。每个元素：{"idx":序号(整数从1开始),"met":true或false,"note":"一句话依据（15字以内）"}。`;
+      let arr = null;
+      try {
+        const raw = await chatSmart(m, [{ role: 'system', content: sys }, { role: 'user', content: user }], 3000, 0.2);
+        arr = parseReqJson(raw, reqs);
+      } catch (e) { arr = null; }
+      if (!arr) continue; // 单段失败不炸整体，继续下一段
+      arr.forEach((r, i) => {
+        if (!r || !merged[i]) return;
+        if (merged[i].type === 'neg') {
+          if (r.met === false) { merged[i].met = false; if (!merged[i].note) merged[i].note = r.note || '本段出现了约束禁止的内容'; }
+        } else if (r.met && !merged[i].met) { merged[i].met = true; merged[i].note = r.note || ''; }
+      });
+      if (merged.every(x => x.met)) break; // 全部已达标，提前结束省调用
+    }
+    merged.forEach(r => { if (!r.met && !r.note) r.note = '各分段均未发现已体现的描写'; });
+    return merged; // 即使个别段失败，也基于已核对段给出尽力结果
+  }
   async function reviewRequirements(m, text, reqs) {
     const box = $('#reqCheckBox');
     lastReviewCtx = { m, text, reqs };
     box.style.display = '';
     box.innerHTML = '<div class="hint">正在逐条核对剧情要求……</div>';
-    const sys = '你是严格的小说续写质检员。下面给出作者的「剧情要求」（每条一行，带序号）以及模型实际生成的续写正文。逐条核对：要求所述事件必须在正文中「已发生或正在发生」，且有具体场景 / 动作 / 结果描写，才算「已体现」；仅提及、暗示、铺垫伏笔、他人转述或比喻带过，一律算「未体现」。';
+    const sys = '你是严格的小说续写质检员。下面给出作者的「剧情要求」（每条一行，带序号）以及模型实际生成的续写正文。逐条核对：要求所述事件必须在正文中「已发生或正在发生」，且有具体场景 / 动作 / 结果描写，才算「已体现」；仅提及、暗示、铺垫伏笔、他人转述或比喻带过，一律算「未体现」。直接输出结果，不要输出任何思考过程或分析。';
     const listText = reqs.map((r, i) => `${i + 1}. ${r}`).join('\n');
     const user = `【作者要求】\n${listText}\n\n【续写正文】\n${text}\n\n请只输出一个 JSON 数组，不要输出其他任何内容（不要解释、不要代码块、不要多余文字）。数组每个元素为对象：{"idx":序号(整数，从1开始),"req":"原要求文本","met":true或false,"note":"一句话依据或缺失原因（15字以内）"}。要求未被体现时 met 为 false。`;
     try {
-      const raw = await API.chat({
-        baseUrl: m.baseUrl, apiKey: m.apiKey, model: m.model,
-        messages: [{ role: 'system', content: sys }, { role: 'user', content: user }],
-        temperature: 0.2, maxTokens: 2000, stream: false, proxy: m.proxy
-      });
-      const results = parseReqJson(raw, reqs);
+      let results = null, raw = null;
+      // 超长正文：整篇一次性塞给模型极易空返回（字数被思考耗尽/超上下文），改为分段核对后合并
+      if (text.replace(/\s/g, '').length > 12000) {
+        results = await reviewLongText(m, text, reqs);
+        if (results) { renderReqCheck(results, reqs); return results; }
+        renderReqFail(null, '正文过长，自动分段核对未成功（可换普通对话模型后点「重新核对」再试）');
+        return null;
+      }
+      raw = await chatSmart(m, [{ role: 'system', content: sys }, { role: 'user', content: user }], 4000, 0.2);
+      results = parseReqJson(raw, reqs);
       if (results) { renderReqCheck(results, reqs); return results; }
       renderReqFail(raw);
       return null;
@@ -1261,9 +1351,12 @@ ${relayReq}直接输出续写正文（自然接在前面之后，不要另起重
       if (out) { out.value = currentText + full; out.scrollTop = out.scrollHeight; }
     }, signal);
   }
+  // （v19e 已取消「整篇修订」：约束类要求被违反时无法廉价自动修正，改为提示用户手动在文本框删去违反处，并支持「沉淀为经验」让下次生成规避，避免整章重写浪费 token）
   function bindRecheck(container) {
     const b = container.querySelector('#btnRecheck');
     if (b && lastReviewCtx) b.addEventListener('click', () => reviewRequirements(lastReviewCtx.m, lastReviewCtx.text, lastReviewCtx.reqs));
+    const ap = container.querySelector('#btnAppendPos');
+    if (ap) ap.addEventListener('click', () => appendUnmetManually(ap));
     const sink = container.querySelector('#btnSinkAll');
     if (sink) sink.addEventListener('click', () => {
       const uns = lastReqCheckResults.filter(r => !r.met);
@@ -1283,7 +1376,7 @@ ${relayReq}直接输出续写正文（自然接在前面之后，不要另起重
   function renderReqFail(raw, errMsg) {
     const box = $('#reqCheckBox');
     const snippet = raw ? esc(String(raw).replace(/\s+/g, ' ').slice(0, 200)) : '';
-    box.innerHTML = `<div class="hint">核对结果解析失败（不影响已生成的续写）。${errMsg ? '原因：' + esc(errMsg) + '。' : ''}${snippet ? '模型返回片段：<code>' + snippet + '</code>' : '模型返回为空。'}点「重新核对」用当前正文再试一次。</div><button class="btn" id="btnRecheck" style="margin-top:8px">重新核对</button>`;
+    box.innerHTML = `<div class="hint">核对结果解析失败（不影响已生成的续写）。${errMsg ? '原因：' + esc(errMsg) + '。' : ''}${snippet ? '模型返回片段：<code>' + snippet + '</code>' : '模型返回为空。'}点「重新核对」用当前正文再试一次。若反复提示「返回为空」，多半是当前模型为「深度思考」类（思考就把输出字数用完了），换个普通对话模型再核对即可。</div><button class="btn" id="btnRecheck" style="margin-top:8px">重新核对</button>`;
     bindRecheck(box);
   }
   function parseReqJson(raw, reqs) {
@@ -1310,10 +1403,14 @@ ${relayReq}直接输出续写正文（自然接在前面之后，不要另起重
     if (objs.length) return mapReqResults(objs, reqs);
     return null;
   }
+  // 约束类要求（不许做某事，如"不要出现无关人物"）：用「整篇修订」修正，而非「追加」
+  function isNegativeReq(s) {
+    return /不(要|得|能|可|应|许|准|宜)|别(出|写|有|让|出现)|禁止|避免|切忌|去掉|移除|删除|无(关|其他|需)|不要有|不能(有|出现)|不出现|不涉及|禁止出现|不得出现|不得有/.test(s);
+  }
   function mapReqResults(arr, reqs) {
     return reqs.map((r, i) => {
       const found = arr.find(x => x && (x.idx === i + 1 || (typeof x.idx === 'string' && x.idx === String(i + 1)) || x.req === r));
-      return { req: r, met: found ? !!found.met : false, note: found ? (found.note || '') : '未返回核对结果' };
+      return { req: r, met: found ? !!found.met : false, note: found ? (found.note || '') : '未返回核对结果', type: isNegativeReq(r) ? 'neg' : 'pos' };
     });
   }
   function renderReqCheck(results, reqs) {
@@ -1322,9 +1419,38 @@ ${relayReq}直接输出续写正文（自然接在前面之后，不要另起重
     const metCount = results.filter(r => r.met).length;
     const noCnt = results.length - metCount;
     const items = results.map((r, i) => `<div class="req-item ${r.met ? 'ok' : 'no'}"><span class="req-badge">${r.met ? '✅' : '❌'}</span><span class="req-text">${esc(r.req)}</span><span class="req-note">${esc(r.note || '')}</span>${r.met ? '' : `<div class="row" style="margin-top:6px"><button class="btn sm" data-fact="tofb" data-idx="${i}">🧠 沉淀为经验</button><span class="meta">点一下即可，下次生成会重点强调这条</span></div>`}</div>`).join('');
-    const sinkAll = noCnt ? `<div class="row" style="margin-top:8px"><button class="btn sm" id="btnSinkAll">一键把 ${noCnt} 条未体现项加入纠错记忆</button><span class="meta">不用逐条点</span></div>` : '';
-    box.innerHTML = `<div class="req-title">剧情要求核对（${metCount}/${reqs.length} 已体现）</div>${items}${sinkAll}<div style="margin-top:8px"><button class="btn" id="btnRecheck">重新核对</button></div><div class="hint">模型自检结果，仅供参考；未体现的条目可点「重新生成」重试，或一键沉淀为经验让下次生成重点强调。</div>`;
+    const negNo = results.filter(r => !r.met && r.type === 'neg').length;
+    const posNo = results.filter(r => !r.met && r.type === 'pos').length;
+    const negHint = negNo ? `<div class="hint" style="margin-top:8px;color:#b45309">⚠️ 有 ${negNo} 条约束类要求未满足（如"不要出现无关人物"）。这类约束无法靠"追加"自动修正，且整篇重写较费 token——建议直接在上方文本框手动删去违反处；也可点「沉淀为经验」，下次生成会重点规避。</div>` : '';
+    const fixBtn = posNo ? `<button class="btn sm primary" id="btnAppendPos">✍️ 追加补全 ${posNo} 条剧情（不删原文）</button>` : '';
+    const sinkAll = noCnt ? `<div class="row wrap" style="margin-top:8px">${fixBtn}<button class="btn sm" id="btnSinkAll">一键加入纠错记忆</button>${posNo ? '<span class="meta">补全段会紧接正文末尾续写，原稿保留</span>' : ''}</div>` : '';
+    box.innerHTML = `<div class="req-title">剧情要求核对（${metCount}/${reqs.length} 已体现）</div>${items}${negHint}${sinkAll}<div style="margin-top:8px"><button class="btn" id="btnRecheck">重新核对</button></div><div class="hint">模型自检结果，仅供参考。剧情类未体现优先点「追加补全」（往末尾续写、不删原文）；约束类被违反需手动在文本框编辑，或重新生成整章（费 token）。注意「重新生成」会清空当前内容。</div>`;
     bindRecheck(box);
+  }
+  async function appendUnmetManually(btn) {
+    // 手动追加补全：紧接当前正文末尾续写未体现的「剧情类」要求，绝不删除/重写已有内容。
+    // 约束类要求（如"不要出现无关人物"）被违反时无法靠追加修正，请手动在文本框编辑，不在本处处理。
+    if (!lastReviewCtx) { toast('没有可用的核对结果，请先「重新核对」'); return; }
+    const posUnmet = (lastReqCheckResults || []).filter(r => !r.met && r.type !== 'neg').map(r => r.req);
+    if (!posUnmet.length) { toast('没有可追加的剧情类要求（约束类需手动编辑正文）'); return; }
+    const out = $('#writeOutput');
+    const currentText = out.value || '';
+    if (!currentText.replace(/\s/g, '')) { toast('正文为空，无法追加，请先「重新生成」'); return; }
+    const m = lastReviewCtx.m;
+    btn.disabled = true; const oldLabel = btn.textContent; btn.textContent = '补全中…';
+    toast(`正在往末尾追加补全 ${posUnmet.length} 条未体现的剧情（原稿保留）…`);
+    try {
+      const appended = await appendMissing(m, currentText, posUnmet, 0.85, null);
+      if (!appended || !appended.replace(/\s/g, '')) { toast('补全段落返回空，可再点一次'); btn.disabled = false; btn.textContent = oldLabel; return; }
+      // out.value 已在 appendMissing 内实时更新（= 原文 + 补全段）
+      if (state.lastGen) state.lastGen.text = out.value;
+      saveGenToDraft();
+      toast('补全完成，正在重新核对…');
+      await reviewRequirements(m, out.value, lastReviewCtx.reqs);
+    } catch (e) {
+      toast('补全失败：' + e.message);
+      btn.disabled = false; btn.textContent = oldLabel;
+    }
   }
   function saveGenToDraft() {
     // 每次生成续写结果后自动存入草稿箱（无论用户是否点导出/采用），避免漏存
@@ -1346,10 +1472,16 @@ ${relayReq}直接输出续写正文（自然接在前面之后，不要另起重
     const w = state.works.find(x => x.id === g.workId);
     if (!w) { toast('未找到对应作品'); return; }
     const title = ($('#inNewTitle').value.trim()) || Novel.nextTitle(w.chapters);
-    w.chapters.push({ index: w.chapters.length, title, content: out, raw: title + '\n' + out });
-    w.text = (w.text || '') + '\n\n' + title + '\n' + out;
+    if (g.isContinue && w.chapters[g.targetIdx] && w.chapters[g.targetIdx].content === g.baseContent) {
+      // 续写模式且目标章节内容未变 → 原地更新该章节，避免重复新增
+      const ch = w.chapters[g.targetIdx];
+      ch.title = title; ch.content = out; ch.raw = title + '\n' + out; ch.index = g.targetIdx;
+    } else {
+      w.chapters.push({ index: w.chapters.length, title, content: out, raw: title + '\n' + out });
+    }
+    w.text = w.chapters.map(c => c.title + '\n' + c.content).join('\n\n');
     w.updatedAt = Date.now(); persistWorks();
-    toast('已追加为：' + title);
+    toast(g.isContinue ? '已更新章节：' + title : '已追加为：' + title);
     state.currentWorkId = w.id; renderWrite();
     // 自动纠错记忆：采用前若被大幅修改，弹窗提示记录经验（用户确认后保存）
     try {
@@ -1496,14 +1628,10 @@ ${relayReq}直接输出续写正文（自然接在前面之后，不要另起重
       if (!m) { toast('请先在「模型」页配置并选择模型'); return; }
       aiBtn.disabled = true; aiBtn.textContent = '总结中…';
       try {
-        const raw = await API.chat({
-          baseUrl: m.baseUrl, apiKey: m.apiKey, model: m.model, proxy: m.proxy,
-          messages: [
-            { role: 'system', content: '你是写作助手。对比「生成原文」与「作者修改后文本」，推断作者修改所体现的写作规则或纠错要求。只输出一条一句话规则（40字以内），不要解释、不要引号、不要任何多余文字。\n重要：规则必须是通用的写作方法论，不要包含本作品的具体人名、地名、专有名词；用「主角 / 反派 / 配角 / 某角色」等通用称谓代替具体名字，使其换一本小说也能用。' },
-            { role: 'user', content: '【生成原文】\n' + f.orig + '\n\n【作者修改后】\n' + f.fixed + '\n\n只输出一句话规则。' }
-          ],
-          temperature: 0.3, maxTokens: 200, stream: false
-        });
+        const raw = await chatSmart(m, [
+          { role: 'system', content: '你是写作助手。对比「生成原文」与「作者修改后文本」，推断作者修改所体现的写作规则或纠错要求。只输出一条一句话规则（40字以内），不要解释、不要引号、不要任何多余文字。\n重要：规则必须是通用的写作方法论，不要包含本作品的具体人名、地名、专有名词；用「主角 / 反派 / 配角 / 某角色」等通用称谓代替具体名字，使其换一本小说也能用。' },
+          { role: 'user', content: '【生成原文】\n' + f.orig + '\n\n【作者修改后】\n' + f.fixed + '\n\n只输出一句话规则。' }
+        ], 300, 0.3);
         const t = String(raw || '').trim().replace(/^["'「『]+|["'」』]+$/g, '');
         if (t) { $('#fbNote').value = t; toast('已提炼，可修改后保存'); }
         else toast('未提炼出规则，请手动填写');
@@ -1554,7 +1682,7 @@ ${relayReq}直接输出续写正文（自然接在前面之后，不要另起重
     const user = '【作者剧情要求】\n' + (reqs.length ? reqs.map((r, i) => `${i + 1}. ${r}`).join('\n') : '（无，仅做文风与质量自检）') + '\n\n【本次续写】\n' + out + '\n\n只输出 JSON 数组。';
     toast('AI 正在扫描续写、找可改进点…');
     try {
-      const raw = await API.chat({ baseUrl: m.baseUrl, apiKey: m.apiKey, model: m.model, proxy: m.proxy, messages: [{ role: 'system', content: sys }, { role: 'user', content: user }], temperature: 0.4, maxTokens: 800, stream: false });
+      const raw = await chatSmart(m, [{ role: 'system', content: sys }, { role: 'user', content: user }], 800, 0.4);
       const arr = parseStringArray(raw);
       if (!arr.length) { toast('AI 未返回可改进点（可能已合格）'); return; }
       renderCritiqueModal(arr);
@@ -1598,14 +1726,10 @@ ${relayReq}直接输出续写正文（自然接在前面之后，不要另起重
         let t = null;
         for (let attempt = 0; attempt < 2 && !t; attempt++) {
           try {
-            const raw = await API.chat({
-              baseUrl: m.baseUrl, apiKey: m.apiKey, model: m.model, proxy: m.proxy,
-              messages: [
-                { role: 'system', content: '你是写作规则整理助手。把下面这条「纠错经验 / 写作要求」改写成一条通用的、可跨小说复用的写作规则。硬性要求：1) 彻底去掉所有具体的人名、地名、专有名词、特定作品名；2) 用「主角 / 反派 / 配角 / 某角色 / 某场景」等通用称谓代替具体名字；3) 保持一句话、可执行、30字以内；4) 只输出改写后的一句话，不要解释、不要引号、不要任何多余文字。如果原句已经是通用表述，直接原样返回即可。' },
-                { role: 'user', content: '【原经验】\n' + note + '\n\n只输出改写后的那一句话规则。' }
-              ],
-              temperature: 0.2, maxTokens: 200, stream: false
-            });
+            const raw = await chatSmart(m, [
+              { role: 'system', content: '你是写作规则整理助手。把下面这条「纠错经验 / 写作要求」改写成一条通用的、可跨小说复用的写作规则。硬性要求：1) 彻底去掉所有具体的人名、地名、专有名词、特定作品名；2) 用「主角 / 反派 / 配角 / 某角色 / 某场景」等通用称谓代替具体名字；3) 保持一句话、可执行、30字以内；4) 只输出改写后的一句话，不要解释、不要引号、不要任何多余文字。如果原句已经是通用表述，直接原样返回即可。' },
+              { role: 'user', content: '【原经验】\n' + note + '\n\n只输出改写后的那一句话规则。' }
+            ], 300, 0.2);
             const cand = String(raw || '').trim().replace(/^["'「『]+|["'」』]+$/g, '');
             if (cand) t = cand;
           } catch (e) { /* 重试一次 */ }
@@ -1826,10 +1950,30 @@ ${relayReq}直接输出续写正文（自然接在前面之后，不要另起重
         <div class="req-hist-meta">${time}</div>
         <div class="row" style="gap:6px;margin-top:6px">
           <button class="btn sm" data-act="fill" data-rid="${r.id}">填入</button>
+          <button class="btn sm" data-act="edit" data-rid="${r.id}">编辑</button>
           <button class="btn sm ghost" data-act="del" data-rid="${r.id}">删除</button>
         </div>
       </div>`;
     }).join('');
+  }
+
+  function openEditReqHist(item) {
+    // 编辑常用剧情要求：预填全文，保存后覆盖该条（id 不变，云端同步内容随之更新）
+    showModal(`<h3>编辑常用剧情要求</h3>
+      <p class="hint">修改这条记录的内容，保存后点「填入」时会填入更新后的全文。每行算一条要求。</p>
+      <label class="field"><span class="lbl">剧情要求（必填）</span>
+        <textarea id="rqEditText" style="min-height:120px">${esc(item.text || '')}</textarea></label>
+      <div class="row" style="margin-top:10px">
+        <button class="btn primary" id="rqEditSave">保存</button>
+        <button class="btn ghost" id="mCloseRqEdit">取消</button>
+      </div>`);
+    $('#rqEditSave').addEventListener('click', () => {
+      const t = $('#rqEditText').value.trim();
+      if (!t) { toast('内容不能为空'); return; }
+      Store.updateReqHistory(item.id, { text: t });
+      hideModal(); renderReqHistory(); toast('已保存修改');
+    });
+    $('#mCloseRqEdit').addEventListener('click', hideModal);
   }
 
   /* ---------------- 事件绑定 ---------------- */
@@ -1897,11 +2041,13 @@ ${relayReq}直接输出续写正文（自然接在前面之后，不要另起重
     $('#ghAutoBtn').addEventListener('click', () => { const gc = GitHubSync.getCfg(); gc.auto = !gc.auto; GitHubSync.setCfg(gc); $('#ghAutoBtn').textContent = '自动同步：' + (gc.auto ? '开' : '关'); toast('自动同步：' + (gc.auto ? '开' : '关')); });
 
     // 续写页
-    $('#btnWrite').addEventListener('click', doWrite);
+    $('#btnWrite').addEventListener('click', () => doWrite());
+    $('#btnContinue').addEventListener('click', continueWrite);
     $('#reqHistList').addEventListener('click', e => {
       const btn = e.target.closest('button[data-act]'); if (!btn) return;
       const id = btn.dataset.rid; const act = btn.dataset.act;
       if (act === 'fill') { const r = Store.getReqHistory().find(x => x.id === id); if (r) { $('#inReq').value = r.text; $('#inReq').focus(); toast('已填入剧情要求'); } }
+      else if (act === 'edit') { const r = Store.getReqHistory().find(x => x.id === id); if (r) openEditReqHist(r); }
       else if (act === 'del') { Store.saveReqHistory(Store.getReqHistory().filter(x => x.id !== id)); renderReqHistory(); toast('已删除'); }
     });
     $('#btnClearReqHist').addEventListener('click', () => { if (confirm('确定清空全部常用剧情要求记录？')) { Store.saveReqHistory([]); renderReqHistory(); toast('已清空'); } });
@@ -1910,7 +2056,7 @@ ${relayReq}直接输出续写正文（自然接在前面之后，不要另起重
     $('#btnAdopt').addEventListener('click', adopt);
     $('#btnSaveDocx').addEventListener('click', exportTxt);
     $('#btnExportAll').addEventListener('click', exportAllTxt);
-    $('#btnRedo').addEventListener('click', doWrite);
+    $('#btnRedo').addEventListener('click', () => doWrite());
     $('#btnDiscard').addEventListener('click', () => { $('#writeOutput').value = ''; setGenButtons('idle'); });
     $('#inTemp').addEventListener('input', e => $('#tempVal').textContent = e.target.value);
     bindChipGroup('#chipStrength'); bindChipGroup('#chipPOV');
