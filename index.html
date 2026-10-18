@@ -624,13 +624,16 @@ const GitHubSync = (() => {
       if (typeof orig === 'function') { Store[fn] = function () { const r = orig.apply(this, arguments); schedulePush(); return r; }; }
     });
   }
-  async function maybePullEmpty() {
-    const hasLocal = Store.getWorks().length || Store.getModels().length || Store.getFeedbacks().length;
-    if (hasLocal) return;
-    try { const r = await pullRaw(); if (r.exists) { Store.importAll(r.text); _lastSha = r.sha; if (typeof toast === 'function') toast('已从 GitHub 拉取数据'); } }
-    catch (e) { status('自动拉取失败：' + e.message); }
+  let _afterPull = null;
+  function setAfterPull(fn) { _afterPull = fn; }
+  async function autoPull() {
+    try {
+      const r = await pullMerge();
+      if (r.ok) { if (typeof _afterPull === 'function') _afterPull(); if (typeof toast === 'function') toast('已从 GitHub 拉取最新数据'); }
+      return r;
+    } catch (e) { status('自动拉取失败：' + e.message); }
   }
-  return { getCfg, setCfg, configured, test, pullRaw, pullMerge, pushCurrent, initAuto, maybePullEmpty, status };
+  return { getCfg, setCfg, configured, test, pullRaw, pullMerge, pushCurrent, initAuto, autoPull, setAfterPull, status };
 })();
 // ===== end GitHub 多设备同步 =====
 </script>
@@ -1835,7 +1838,7 @@ ${relayReq}直接输出续写正文（自然接在前面之后，不要另起重
       }
     });
     renderWorks();
-    if (GitHubSync.configured()) { GitHubSync.initAuto(); GitHubSync.maybePullEmpty(); }
+    if (GitHubSync.configured()) { GitHubSync.initAuto(); GitHubSync.setAfterPull(() => { load(); renderWorks(); renderModels(); renderSettings(); renderFeedback(); renderDrafts(); }); GitHubSync.autoPull(); }
   }
   document.addEventListener('DOMContentLoaded', init);
 })();
