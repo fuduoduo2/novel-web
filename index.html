@@ -77,6 +77,9 @@ header.topbar {
 .row.wrap { flex-wrap: wrap; }
 .spread { justify-content: space-between; }
 .grow { flex: 1; }
+.req-hist-item { border: 1px solid var(--border); border-radius: 10px; padding: 8px 10px; margin-top: 8px; background: var(--surface); }
+.req-hist-text { font-size: 14px; color: var(--text); word-break: break-word; }
+.req-hist-meta { font-size: 12px; color: var(--text-soft); margin-top: 2px; }
 
 .btn {
   appearance: none; border: 1px solid var(--border);
@@ -277,6 +280,12 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--primary); o
           <label data-page-node-id="M28wH9clYUQVCkCAkORJ7J" class="field"><span data-page-node-id="RnrUnFtWND7oHse1lmIkdd" class="lbl"><!--pnid:yxgIcEtAKg56C96t1IN2JT-->剧情要求（每行一条，生成后自动逐条核对是否写进续写）</span>
             <textarea data-page-node-id="tkTA2FnDMSYfTyrDpv7CZM" id="inReq" placeholder="每行一条具体事件（谁+发生什么），例如：&#10;主角在密道发现身世秘密&#10;反派当众揭穿配角的背叛"></textarea></label>
         </div>
+        <div class="card" id="reqHistCard">
+          <h3>📌 我的常用剧情要求</h3>
+          <div class="hint">每次点「开始续写」，本栏会自动记录你写的「剧情要求」，方便下次一键填入。点「填入」即把内容放回上面的剧情要求框；点「删除」移除本条。记录跟着云端同步，手机电脑通用。</div>
+          <div id="reqHistList"></div>
+          <div class="row" style="margin-top:8px"><button class="btn ghost" id="btnClearReqHist">清空记录</button></div>
+        </div>
         <div data-page-node-id="aMAuiIswTl1zYkLO0p3ZzF" class="card">
           <div data-page-node-id="2uGnBBpQnOa7fsUb49soFx" class="row spread">
             <button data-page-node-id="yQRc2AbUWmSkCa3Ix9ZmS7" class="btn primary grow" id="btnWrite"><!--pnid:YfFlmvy1FmZI7pYBZev92Z-->开始续写</button>
@@ -424,7 +433,7 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--primary); o
   <script data-page-node-id="FZojkgGnoxTqRnzjJ45R2r" data-pnid-children="33WrFcqRCcFKrEFy0cceYV">
 // 本地存储封装：作品库、模型配置、全局设置（全部存在浏览器 localStorage，数据不离开本机）
 const Store = (() => {
-  const K = { works: 'nw_works', models: 'nw_models', settings: 'nw_settings', drafts: 'nw_drafts', feedback: 'nw_feedback' };
+  const K = { works: 'nw_works', models: 'nw_models', settings: 'nw_settings', drafts: 'nw_drafts', feedback: 'nw_feedback', reqHistory: 'nw_reqhist' };
   let mem = {};                 // file:// 或隐私模式下 localStorage 被禁用时的内存兜底
   let lsOK = true;
   try { localStorage.getItem('__nw_probe__'); } catch (e) { lsOK = false; }
@@ -486,13 +495,26 @@ const Store = (() => {
       set(K.feedback, arr); return arr;
     },
     delFeedback: (id) => { const arr = get(K.feedback, []).filter(f => f.id !== id); set(K.feedback, arr); return arr; },
+    getReqHistory: () => get(K.reqHistory, []),
+    saveReqHistory: (a) => set(K.reqHistory, a),
+    addReqHistory: (text) => {
+      text = (text || '').trim();
+      if (!text) return;
+      const arr = get(K.reqHistory, []);
+      const nid = Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+      arr.unshift({ id: nid, text, ts: Date.now() });
+      if (arr.length > 100) arr.length = 100;
+      set(K.reqHistory, arr);
+      return arr;
+    },
     exportAll: () => JSON.stringify({
       _type: 'novel-writer-backup',
       works: get(K.works, []),
       models: get(K.models, []),
       settings: get(K.settings, {}),
       drafts: get(K.drafts, []),
-      feedback: get(K.feedback, [])
+      feedback: get(K.feedback, []),
+      reqHistory: get(K.reqHistory, [])
     }, null, 2),
     importAll: (txt) => {
       const o = JSON.parse(txt);
@@ -501,6 +523,7 @@ const Store = (() => {
       if (o.settings) set(K.settings, o.settings);
       if (o.drafts) set(K.drafts, o.drafts);
       if (o.feedback) set(K.feedback, o.feedback);
+      if (o.reqHistory) set(K.reqHistory, o.reqHistory);
     }
   };
 })();
@@ -602,6 +625,7 @@ const GitHubSync = (() => {
       Store.saveModels(union('getModels', 'models'));
       Store.saveFeedbacks(union('getFeedbacks', 'feedback'));
       Store.saveDrafts(union('getDrafts', 'drafts'));
+      Store.saveReqHistory(union('getReqHistory', 'reqHistory'));
       if (remote.settings) Store.saveSettings(Object.assign(Store.getSettings(), remote.settings));
       _lastSha = r.sha;
       return { ok:true, msg:'已合并远程数据' };
@@ -1087,7 +1111,7 @@ ${relayReq}直接输出续写正文（自然接在前面之后，不要另起重
     const m = getSelModel(); if (!m) { toast('请先在「模型」页配置并选择模型'); return; }
     const targetIdx = parseInt($('#selChapter').value, 10);
     const chap = w.chapters[targetIdx];
-    const chars = Math.max(300, parseInt($('#inChars').value, 10) || state.settings.defaultChars);
+    let chars = Math.max(300, parseInt($('#inChars').value, 10) || state.settings.defaultChars);
     const strength = $('#chipStrength .on').dataset.v;
     const pov = $('#chipPOV .on').dataset.v;
     const hook = $('#chipHook').classList.contains('on');
@@ -1102,6 +1126,11 @@ ${relayReq}直接输出续写正文（自然接在前面之后，不要另起重
     const extra = $('#inExtra').value.trim();
     const reqText = $('#inReq').value.trim();
     const reqList = reqText ? reqText.split(/\n+/).map(s => s.trim()).filter(Boolean) : [];
+    if (reqText) { Store.addReqHistory(reqText); renderReqHistory(); }
+    if (reqList.length) {
+      const need = reqList.length * 1000;   // 每条剧情要求至少约 1000 字才写得下"具体场面"
+      if (need > chars) { chars = need; toast(`剧情要求较多，已把目标篇幅提到约 ${chars} 字，确保每条都写充分`); }
+    }
     const fbList = Store.getFeedbacks().filter(f => f.use);
     const context = Novel.buildContext(w.chapters, targetIdx, sample);
     const totalChunks = Math.max(1, Math.ceil(chars / CHUNK_CHARS));
@@ -1155,12 +1184,34 @@ ${relayReq}直接输出续写正文（自然接在前面之后，不要另起重
       setGenButtons('done');
       if (state.lastGen) state.lastGen.text = out.value;
       saveGenToDraft();
-      if (reqList.length) { try { await reviewRequirements(m, out.value, reqList); } catch (e) {} }
+      if (reqList.length) {
+        let guard = 0, unmetCount = 0;
+        while (guard < 3) {
+          let results = null;
+          try { results = await reviewRequirements(m, out.value, reqList); } catch (e) {}
+          if (!results) { toast('剧情要求核对暂未完成（网络或模型波动），可点「重新生成」再核对一次'); break; }
+          const unmet = results.filter(r => !r.met).map(r => r.req);
+          unmetCount = unmet.length;
+          if (!unmetCount) break;
+          guard++;
+          toast(`剧情要求有 ${unmetCount} 条未充分体现，正在自动补全（第 ${guard}/3 次）…`);
+          try {
+            const appended = await appendMissing(m, out.value, unmet, temp, state.abort ? state.abort.signal : null);
+            if (!appended || !appended.replace(/\s/g, '')) { lastErr = '补全段落返回空'; break; }
+            // out.value 已在 appendMissing 内实时更新（= 原文 + 补全段），这里只同步状态
+            state.lastGen.text = out.value;
+            updateProgress(out.value, chars);
+            saveGenToDraft();
+          } catch (e) { if (e.name === 'AbortError') throw e; lastErr = e.message; break; }
+        }
+        if (unmetCount) toast(`已尽力补全：仍有 ${unmetCount} 条未体现，可点「重新生成」再试一次`);
+        else toast('✅ 全部剧情要求已落实到正文');
+      }
       if (acc.replace(/\s/g, '').length < chars) {
         toast(failChunk
           ? `第 ${failChunk} 段连续重连失败（${lastErr || '接口异常'}），已完成内容已保留，可点「重新生成」继续补全`
           : '已达到可生成上限，可点「重新生成」继续补全');
-      } else toast('续写完成，可编辑后「采用」');
+      } else if (!reqList.length) toast('续写完成，可编辑后「采用」');
     } catch (e) {
       if (e.name === 'AbortError') { toast('已停止，已完成内容已保留在文本框'); setGenButtons('done'); saveGenToDraft(); }
       else { out.value = (out.value || '') + '\n【生成失败】' + e.message; setGenButtons('done'); toast('生成失败：' + e.message); }
@@ -1185,11 +1236,30 @@ ${relayReq}直接输出续写正文（自然接在前面之后，不要另起重
         temperature: 0.2, maxTokens: 2000, stream: false, proxy: m.proxy
       });
       const results = parseReqJson(raw, reqs);
-      if (results) renderReqCheck(results, reqs);
-      else renderReqFail(raw);
+      if (results) { renderReqCheck(results, reqs); return results; }
+      renderReqFail(raw);
+      return null;
     } catch (e) {
       renderReqFail(null, e.message);
+      return null;
     }
+  }
+  async function appendMissing(m, currentText, unmet, temp, signal) {
+    // 续写接力式补全：把「未体现的剧情要求」逐条写成真实发生的具体事件，紧接前文续写一段
+    const tail = (currentText && currentText.length) ? currentText.slice(-2200) : '';
+    const listText = unmet.map((r, i) => `${i + 1}. ${r}`).join('\n');
+    const sys = Prompt.SYSTEM + '\n\n你现在的任务是「补全缺失剧情」：作者提出的剧情要求中有若干条尚未在正文里真实发生。请紧接前文续写一段，把下面【必须补全的剧情要求】逐条写成已经真实发生的具体事件——要有场景、动作、对话或明确结果，不得只用提及、暗示、铺垫、转述或比喻带过。保持文风、人物、世界观与前文严格一致，只输出续写正文，不要写任何引导语或点评。';
+    const user = '【前文（紧接其后续写，不要重复已写内容）】\n' + tail + '\n\n【必须补全的剧情要求（逐条落实为真实发生的具体事件）】\n' + listText + '\n\n直接输出续写正文，自然接在前文之后。';
+    const messages = [
+      { role: 'system', content: sys },
+      { role: 'user', content: user }
+    ];
+    const maxTokens = Math.min(4096, unmet.length * 800 + 300);
+    const out = $('#writeOutput');
+    // 实时把「原文 + 本次补全」写入文本框；返回值仅为本次新增的正文（不含前缀）
+    return await streamChunk(messages, maxTokens, temp, m, (d, full) => {
+      if (out) { out.value = currentText + full; out.scrollTop = out.scrollHeight; }
+    }, signal);
   }
   function bindRecheck(container) {
     const b = container.querySelector('#btnRecheck');
@@ -1441,6 +1511,27 @@ ${relayReq}直接输出续写正文（自然接在前面之后，不要另起重
       aiBtn.disabled = false; aiBtn.textContent = 'AI 从两版差异中提炼';
     });
   }
+  function openEditFeedback(f) {
+    // 编辑已有纠错经验：预填原文，保存后覆盖该条（不新增）
+    showModal(`<h3>编辑纠错经验</h3>
+      <p class="hint">修改这条经验的内容，保存后下次生成会使用更新后的值。</p>
+      <label class="field"><span class="lbl">规则 / 要求（必填，一句话）</span>
+        <textarea id="fbEditNote" style="min-height:90px">${esc(f.note || '')}</textarea></label>
+      <label class="field"><span class="lbl">备注（可选）</span>
+        <input id="fbEditSummary" type="text" value="${esc(f.summary || '')}" style="width:100%;box-sizing:border-box;padding:8px;border-radius:8px;border:1px solid var(--bd,#ddd)"></label>
+      <div class="row" style="margin:6px 0"><label class="lbl" style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="fbEditUse" ${f.use ? 'checked' : ''}> 纳入下次生成</label></div>
+      <div class="row" style="margin-top:10px">
+        <button class="btn primary" id="fbEditSave">保存</button>
+        <button class="btn ghost" id="mCloseEdit">取消</button>
+      </div>`);
+    $('#fbEditSave').addEventListener('click', () => {
+      const note = $('#fbEditNote').value.trim();
+      if (!note) { toast('规则内容不能为空'); return; }
+      Store.updateFeedback(f.id, { note, summary: $('#fbEditSummary').value.trim(), use: $('#fbEditUse').checked });
+      hideModal(); renderFeedback(); toast('已保存修改');
+    });
+    $('#mCloseEdit').addEventListener('click', hideModal);
+  }
   // 解析「字符串数组」：容错提取 JSON 数组元素（用于 AI 自评返回）
   function parseStringArray(raw) {
     if (!raw) return [];
@@ -1499,28 +1590,38 @@ ${relayReq}直接输出续写正文（自然接在前面之后，不要另起重
     if (!m) { toast('请先在「模型」页配置模型'); return; }
     if (!confirm('将把所有纠错经验改写为不含具体人名的通用规则，原内容会被覆盖，继续？')) return;
     const btn = $('#btnGeneralizeFb'); if (btn) btn.disabled = true;
-    let done = 0;
+    let ok = 0, fail = 0;
     try {
       for (const f of list) {
         const note = (f.note || '').trim();
-        if (!note) { done++; continue; }
-        try {
-          const raw = await API.chat({
-            baseUrl: m.baseUrl, apiKey: m.apiKey, model: m.model, proxy: m.proxy,
-            messages: [
-              { role: 'system', content: '你是写作规则整理助手。把下面这条「纠错经验 / 写作要求」改写成一条通用的、可跨小说复用的写作规则：去掉具体的人名、地名、专有名词，用「主角 / 反派 / 配角 / 某角色」等通用称谓代替；保持一句话、可执行、30字以内。只输出改写后的一句话，不要解释、不要引号、不要任何多余文字。' },
-              { role: 'user', content: '【原经验】\n' + note + '\n\n只输出改写后的一句话规则。' }
-            ],
-            temperature: 0.3, maxTokens: 200, stream: false
-          });
-          const t = String(raw || '').trim().replace(/^["'「『]+|["'」』]+$/g, '');
-          if (t) Store.updateFeedback(f.id, { note: t, summary: (f.summary ? f.summary + ' · ' : '') + '已通用化' });
-        } catch (e) { /* 单条失败则保留原值 */ }
-        done++;
-        if (done % 3 === 0 || done === list.length) toast(`通用化中 (${done}/${list.length})…`);
+        if (!note) { ok++; continue; }
+        let t = null;
+        for (let attempt = 0; attempt < 2 && !t; attempt++) {
+          try {
+            const raw = await API.chat({
+              baseUrl: m.baseUrl, apiKey: m.apiKey, model: m.model, proxy: m.proxy,
+              messages: [
+                { role: 'system', content: '你是写作规则整理助手。把下面这条「纠错经验 / 写作要求」改写成一条通用的、可跨小说复用的写作规则。硬性要求：1) 彻底去掉所有具体的人名、地名、专有名词、特定作品名；2) 用「主角 / 反派 / 配角 / 某角色 / 某场景」等通用称谓代替具体名字；3) 保持一句话、可执行、30字以内；4) 只输出改写后的一句话，不要解释、不要引号、不要任何多余文字。如果原句已经是通用表述，直接原样返回即可。' },
+                { role: 'user', content: '【原经验】\n' + note + '\n\n只输出改写后的那一句话规则。' }
+              ],
+              temperature: 0.2, maxTokens: 200, stream: false
+            });
+            const cand = String(raw || '').trim().replace(/^["'「『]+|["'」』]+$/g, '');
+            if (cand) t = cand;
+          } catch (e) { /* 重试一次 */ }
+        }
+        if (t && t !== note) {
+          Store.updateFeedback(f.id, { note: t, summary: (f.summary ? f.summary + ' · ' : '') + '已通用化' });
+          ok++;
+        } else if (t && t === note) {
+          ok++; // 已经是通用表述，无需改动
+        } else {
+          fail++;
+        }
       }
       renderFeedback();
-      toast('已通用化全部经验：现在换小说也能用了');
+      if (fail === 0) toast(`已通用化全部经验（${ok} 条）：现在换小说也能用了`);
+      else toast(`通用化完成：成功 ${ok} 条，失败 ${fail} 条（原文保留，可重试）`);
     } finally {
       if (btn) btn.disabled = false;
     }
@@ -1539,6 +1640,7 @@ ${relayReq}直接输出续写正文（自然接在前面之后，不要另起重
         <div class="fb-note">${esc(f.note || '')}</div>
         ${f.summary ? '<div class="meta">' + esc(f.summary) + '</div>' : ''}
         <div class="row wrap" style="margin-top:10px">
+          <button class="btn sm" data-fact="edit" data-id="${f.id}">编辑</button>
           <button class="btn sm" data-fact="toggle" data-id="${f.id}">${f.use ? '停用' : '启用'}</button>
           <button class="btn sm danger" data-fact="del" data-id="${f.id}">删除</button>
         </div></div>`;
@@ -1709,6 +1811,27 @@ ${relayReq}直接输出续写正文（自然接在前面之后，不要另起重
   function showModal(html) { const m = $('#modal'); m.innerHTML = `<div class="mask" id="mMask"></div><div class="panel">${html}</div>`; m.classList.add('show'); $('#mMask').addEventListener('click', hideModal); }
   function hideModal() { const m = $('#modal'); m.classList.remove('show'); m.innerHTML = ''; }
 
+  /* ---------------- 常用剧情要求 ---------------- */
+  function renderReqHistory() {
+    const box = $('#reqHistList'); if (!box) return;
+    const list = Store.getReqHistory();
+    if (!list.length) { box.innerHTML = '<div class="hint" style="margin-top:6px">暂无记录。写好「剧情要求」点「开始续写」后，会自动出现在这里。</div>'; return; }
+    box.innerHTML = list.map(r => {
+      const lines = r.text.split('\n');
+      const preview = lines[0] || '';
+      const more = lines.length > 1 ? ' 等 ' + lines.length + ' 条' : '';
+      const time = new Date(r.ts).toLocaleDateString();
+      return `<div class="req-hist-item" data-rid="${r.id}">
+        <div class="req-hist-text" title="${esc(r.text)}">${esc(preview)}${esc(more)}</div>
+        <div class="req-hist-meta">${time}</div>
+        <div class="row" style="gap:6px;margin-top:6px">
+          <button class="btn sm" data-act="fill" data-rid="${r.id}">填入</button>
+          <button class="btn sm ghost" data-act="del" data-rid="${r.id}">删除</button>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
   /* ---------------- 事件绑定 ---------------- */
   function bind() {
     $$('.tabbar .tab').forEach(t => t.addEventListener('click', () => switchTab(t.dataset.tab)));
@@ -1745,7 +1868,8 @@ ${relayReq}直接输出续写正文（自然接在前面之后，不要另起重
     $('#feedbackList').addEventListener('click', e => {
       const b = e.target.closest('[data-fact]'); if (!b) return;
       const id = b.dataset.id; const f = Store.getFeedbacks().find(x => x.id === id);
-      if (b.dataset.fact === 'toggle') { if (f) Store.updateFeedback(id, { use: !f.use }); renderFeedback(); }
+      if (b.dataset.fact === 'edit') { if (f) openEditFeedback(f); }
+      else if (b.dataset.fact === 'toggle') { if (f) Store.updateFeedback(id, { use: !f.use }); renderFeedback(); }
       else if (b.dataset.fact === 'del') { if (confirm('删除这条纠错经验？')) { Store.delFeedback(id); renderFeedback(); } }
     });
     $('#btnRecordFix').addEventListener('click', recordFixFromOutput);
@@ -1774,6 +1898,14 @@ ${relayReq}直接输出续写正文（自然接在前面之后，不要另起重
 
     // 续写页
     $('#btnWrite').addEventListener('click', doWrite);
+    $('#reqHistList').addEventListener('click', e => {
+      const btn = e.target.closest('button[data-act]'); if (!btn) return;
+      const id = btn.dataset.rid; const act = btn.dataset.act;
+      if (act === 'fill') { const r = Store.getReqHistory().find(x => x.id === id); if (r) { $('#inReq').value = r.text; $('#inReq').focus(); toast('已填入剧情要求'); } }
+      else if (act === 'del') { Store.saveReqHistory(Store.getReqHistory().filter(x => x.id !== id)); renderReqHistory(); toast('已删除'); }
+    });
+    $('#btnClearReqHist').addEventListener('click', () => { if (confirm('确定清空全部常用剧情要求记录？')) { Store.saveReqHistory([]); renderReqHistory(); toast('已清空'); } });
+    renderReqHistory();
     $('#btnStop').addEventListener('click', () => { if (state.abort) state.abort.abort(); });
     $('#btnAdopt').addEventListener('click', adopt);
     $('#btnSaveDocx').addEventListener('click', exportTxt);
