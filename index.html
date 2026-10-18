@@ -521,28 +521,41 @@ const GitHubSync = (() => {
   let _timer = null, _inflight = false, _lastSha = null, _autoinited = false;
   const status = (m) => { const el = document.getElementById('ghStatus'); if (el) el.textContent = m; };
 
+  const sleep = (ms) => new Promise(res => setTimeout(res, ms));
+  async function fetchJsonRetry(u, opts, tries) {
+    tries = tries || 3; let lastErr = null;
+    for (let i = 0; i < tries; i++) {
+      try {
+        const r = await fetch(u, opts);
+        if (r.status === 404) return { notFound:true };
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        const j = await r.json();
+        return { j };
+      } catch (e) { lastErr = e; if (i < tries - 1) await sleep(800 * (i + 1)); }
+    }
+    throw (lastErr || new Error('网络错误'));
+  }
   async function apiGetFile(c) {
-    const r = await fetch(url(c), { headers: head(c) });
-    if (r.status === 404) return null;
-    if (!r.ok) throw new Error('读取文件失败 HTTP ' + r.status);
-    const j = await r.json();
-    return { sha: j.sha, text: b64dec(j.content) };
+    const res = await fetchJsonRetry(url(c), { headers: head(c) });
+    if (res.notFound) return null;
+    return { sha: res.j.sha, text: b64dec(res.j.content) };
   }
   async function test() {
     const c = getCfg(); if (!configured()) return { ok:false, msg:'请先填写用户名 / 仓库 / PAT' };
     try {
-      const r = await fetch(`https://api.github.com/repos/${encodeURIComponent(c.owner)}/${encodeURIComponent(c.repo)}`, { headers: head(c) });
-      if (r.status === 401) return { ok:false, msg:'令牌无效或无权限 (401)' };
-      if (r.status === 404) return { ok:false, msg:'仓库不存在或令牌无权访问 (404)' };
-      if (!r.ok) return { ok:false, msg:'仓库访问异常 ' + r.status };
-      const j = await r.json();
-      return { ok:true, msg: j.full_name + '（默认分支 ' + j.default_branch + '）' };
-    } catch (e) { return { ok:false, msg:'网络错误：' + e.message }; }
+      const res = await fetchJsonRetry(`https://api.github.com/repos/${encodeURIComponent(c.owner)}/${encodeURIComponent(c.repo)}`, { headers: head(c) });
+      if (res.notFound) return { ok:false, msg:'仓库不存在或令牌无权访问 (404)' };
+      return { ok:true, msg: res.j.full_name + '（默认分支 ' + res.j.default_branch + '）' };
+    } catch (e) {
+      const m = String(e.message || '');
+      if (m.indexOf('401') >= 0) return { ok:false, msg:'令牌无效或无权限 (401)' };
+      return { ok:false, msg:'网络错误：' + m };
+    }
   }
   async function pullRaw() {
     const c = getCfg(); if (!configured()) return { exists:false };
     const m = await apiGetFile(c); if (!m) return { exists:false };
-    const data = JSON.parse(m.text);
+    let data; try { data = JSON.parse(m.text); } catch (e) { throw new Error('云端数据下载不完整（网络波动），请再点一次「拉取合并」'); }
     return { exists:true, text:m.text, data, sha:m.sha };
   }
   async function pushOnce(c, body) {
