@@ -128,12 +128,12 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--primary); o
 .tabbar .tab .ic { font-size: 20px; display: block; line-height: 1.1; }
 .tabbar .tab.on { color: var(--primary); font-weight: 700; }
 
-/* 桌面端加宽布局（手机端不受影响） */
+/* 桌面端加宽布局（手机端不受影响）：近铺满整页，超宽屏封顶 1800px */
 @media (min-width: 768px) {
   body { font-size: 16px; }
-  .app { max-width: 960px; }
-  .tabbar { max-width: 960px; }
-  .modal .panel { width: min(94%, 760px); }
+  .app { max-width: min(96%, 1800px); }
+  .tabbar { max-width: min(96%, 1800px); }
+  .modal .panel { width: min(94%, 900px); }
   .modal .panel textarea { min-height: 420px !important; }
 }
 
@@ -169,6 +169,12 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--primary); o
 }
 .progress { height: 4px; background: var(--border); border-radius: 4px; overflow: hidden; margin: 8px 0; }
 .progress > i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--primary), var(--primary-2)); transition: width .2s; }
+  .bat-chap { margin-top:10px; border:1px solid var(--border); border-radius:8px; padding:8px; }
+  .bat-chap .bat-ta { width:100%; box-sizing:border-box; margin-top:6px; min-height:80px; font-family:inherit; line-height:1.6; resize:vertical; }
+  .bat-chap-reqs { display:grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap:10px; margin-top:8px; }
+  .bat-chap-reqs .field { margin-bottom:0; }
+  .bat-chap-reqs .field .lbl { font-size:12px; margin-bottom:4px; }
+  .bat-chap-reqs .field textarea { min-height:50px; font-size:13px; }
 
 .toast {
   position: fixed; left: 50%; bottom: 80px; transform: translateX(-50%);
@@ -366,6 +372,63 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--primary); o
       </div>
     </section>
 
+    <section class="page" id="page-batch">
+      <div class="card">
+        <h3>📚 长篇批量续写（一次写十万字级）</h3>
+        <div class="hint">为什么需要它：模型单次响应有字数上限，写 10 万字必须拆成多章、多次调用。本模式帮你自动连写 N 章、逐章流式显示并实时落盘（崩溃不丢前文），生成后每章可单独改 / 重生成。基于下方选择的「基于作品 / 续写起点」续写，并套用该作品的 Lorebook（人设 / 世界观）。结果先进草稿箱，确认后再导出 / 并入正文。</div>
+        <p class="meta" id="batSelInfo" style="margin:6px 0">尚未选择作品 / 模型：请先到「作品」页上传小说、「模型」页选模型，再回到本页操作。</p>
+        <div class="row wrap" style="margin-top:8px">
+          <label class="field" style="flex:1;min-width:220px"><span class="lbl">基于作品（续写哪本）</span><select id="batWork"></select></label>
+          <label class="field" style="flex:1;min-width:280px"><span class="lbl">续写起点（从该章之后接着写）</span><select id="batChapter"></select></label>
+        </div>
+        <div class="row wrap">
+          <label class="field" style="width:180px"><span class="lbl">总字数目标</span><input id="batTotal" type="number" value="100000"></label>
+          <label class="field" style="width:110px"><span class="lbl">章节数</span><input id="batChaps" type="number" value="10"></label>
+        </div>
+        <label class="field"><span class="lbl">整体剧情线（给 AI 的整体大纲 / 要求，可空）</span><textarea id="batPlot" rows="3" placeholder="例如：主角穿越成废柴，先学院打脸，中期商战复仇，后期争霸……"></textarea></label>
+        <div class="card" style="margin-top:12px;background:var(--surface)">
+          <h4 style="margin:0 0 6px">✍️ 分章要求（可选，按章指定更清晰）</h4>
+          <div class="hint">设置好上方「章节数」后，下方会按章出现输入框，可逐章填写本章专属剧情要求（每行一条，可留空——留空则该章按整体剧情线自由发挥）。生成时这些要求会随该章一起注入模型；点「🔍 校核」也会一并核对它们。</div>
+          <div id="batChapReqs" class="bat-chap-reqs"></div>
+        </div>
+        <div class="row wrap">
+          <label class="field" style="flex:1;min-width:240px"><span class="lbl">风格参考作品（可选）</span>
+            <select id="batStyleWork"></select>
+          </label>
+        </div>
+        <div class="hint" style="margin:4px 0 8px">选另一本小说作「文风范本」：用它的笔调续写当前作品，但内容/人物/情节仍属于当前作品。留空则模仿当前作品自身文风。以下强度/视角/钩子/温度/样本章数与「续写」页同名设置含义一致，此处独立可调。</div>
+        <div class="row wrap">
+          <label class="field"><span class="lbl">风格模仿强度</span><div class="chips" id="batStrength"><span class="chip on" data-v="high">高强度</span><span class="chip" data-v="medium">中等</span></div></label>
+          <label class="field"><span class="lbl">叙事视角</span><div class="chips" id="batPOV"><span class="chip on" data-v="auto">保持原文</span><span class="chip" data-v="first">第一人称</span><span class="chip" data-v="third">第三人称</span></div></label>
+          <label class="field"><span class="lbl">章末留钩子</span><div class="chips" id="batHook"><span class="chip on" data-v="1">每章末留钩子</span></div></label>
+        </div>
+        <div class="row wrap">
+          <label class="field" style="width:140px"><span class="lbl">采样温度</span><input id="batTemp" type="number" step="0.05" min="0" max="2" value="0.85"></label>
+          <label class="field" style="width:160px"><span class="lbl">喂给模型的样本章数</span><input id="batSample" type="number" value="10"></label>
+        </div>
+        <div class="row wrap">
+          <button class="btn primary" id="btnBatchStart">🚀 开始批量续写</button>
+          <button class="btn" id="btnBatchStop" disabled>■ 停止</button>
+          <span class="meta" id="batStatus"></span>
+        </div>
+        <div class="progress" style="margin-top:10px;display:none" id="batProgBar"><i id="batProgBarFill"></i></div>
+        <div id="batResults" style="margin-top:14px"></div>
+        <div class="row wrap" id="batActions" style="margin-top:12px">
+          <button class="btn primary" id="btnBatchAdopt">✅ 采用并追加到正文</button>
+          <button class="btn" id="btnBatchExport">⬇ 导出 TXT</button>
+          <button class="btn" id="btnBatchRedo">↻ 重新生成</button>
+          <button class="btn ghost" id="btnBatchDiscard">🗑 丢弃全部</button>
+          <button class="btn" id="btnBatchSave">💾 存草稿箱</button>
+          <button class="btn" id="btnBatchRecordFix">🧠 记录本次纠错</button>
+          <button class="btn" id="btnBatchCritique">🔍 AI 找问题</button>
+          <button class="btn" id="btnBatchExportAll">📚 导出整本</button>
+          <button class="btn" id="btnBatchCheck">🔍 校核剧情要求</button>
+          <button class="btn" id="btnBatchResume">↪ 继续生成剩余章</button>
+        </div>
+        <div id="batCheckResult" style="margin-top:10px"></div>
+      </div>
+    </section>
+
     <!--pnid:q6n4Qq0CBDG5z9ZkJcNlqj--><!-- 模型 -->
     <section data-page-node-id="UDaCEaMu1dv6c2xkxRDZ34" class="page" id="page-models">
       <div data-page-node-id="To56mV9IPLhSyt3r0eJ8OX" class="card">
@@ -491,6 +554,7 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--primary); o
       <div data-page-node-id="Vn0pCbviLZs8xzd5g6PKgF" class="tab" data-tab="write"><span data-page-node-id="Kxf8fGox0QLTnfs6zkpg7Y" class="ic"><!--pnid:Uy59E1DZoVIAxmYBLR2nl0-->✍️</span><!--pnid:VAS8ztKHkLcVecHOVuB3rw-->续写</div>
       <div class="tab" data-tab="lore"><span class="ic">📖</span>设定</div>
       <div class="tab" data-tab="outline"><span class="ic">🌳</span>大纲</div>
+      <div class="tab" data-tab="batch"><span class="ic">📚</span>长篇</div>
       <div data-page-node-id="KpLbve5Ey4DLIJl4LB2sf9" class="tab" data-tab="models"><span data-page-node-id="ATGg5SjOmSjSCOkZwCzFFh" class="ic"><!--pnid:VB7YUa9RYfJXieqLTC08NL-->🔌</span><!--pnid:R8fkgXkaXGY24GHr53aIB5-->模型</div>
       <div data-page-node-id="dK5OmBGZM2EQe1UjHZEWNk" class="tab" data-tab="drafts"><span data-page-node-id="FyGjvrKjmv7VS4AIZO134h" class="ic"><!--pnid:d88tmlzJOE4MMplpZonhaV-->🗂️</span><!--pnid:31gc5741mkqEu24OhSdeEU-->草稿箱</div>
       <div data-page-node-id="akVTOydT2PA7xvCu56mBb0" class="tab" data-tab="settings"><span data-page-node-id="FW5cVZ2DL0lEjuMhOGIEEL" class="ic"><!--pnid:JttPnokJ1lurOGI0Ve4ezi-->⚙️</span><!--pnid:IoEtaG1m1wgCOUM32I6yjw-->设置</div>
@@ -609,8 +673,10 @@ const Store = (() => {
 // ===== GitHub 多设备同步（数据存用户自己的私有仓库）=====
 const GitHubSync = (() => {
   const KEY = 'nw_gh';
-  const getCfg = () => { try { return Object.assign({ owner:'', repo:'', branch:'main', path:'novel-writer-data.json', token:'', auto:true }, JSON.parse(localStorage.getItem(KEY) || '{}')); } catch (e) { return { owner:'', repo:'', branch:'main', path:'novel-writer-data.json', token:'', auto:true }; } };
-  const setCfg = (c) => { try { localStorage.setItem(KEY, JSON.stringify(c)); } catch (e) {} };
+  let _memCfg = null; // localStorage 被禁用（如 iframe 预览）时的会话级兜底
+  let _lsOK = true;
+  const getCfg = () => { const d = { owner:'', repo:'', branch:'main', path:'novel-writer-data.json', token:'', auto:true }; try { return Object.assign(d, JSON.parse(localStorage.getItem(KEY) || '{}')); } catch (e) { _lsOK = false; return Object.assign(d, _memCfg || {}); } };
+  const setCfg = (c) => { _memCfg = c; try { localStorage.setItem(KEY, JSON.stringify(c)); _lsOK = true; } catch (e) { _lsOK = false; } };
   const configured = () => { const c = getCfg(); return !!(c.owner && c.repo && c.token); };
   const enc = (p) => p.split('/').map(encodeURIComponent).join('/');
   const url = (c) => `https://api.github.com/repos/${encodeURIComponent(c.owner)}/${encodeURIComponent(c.repo)}/contents/${enc(c.path)}`;
@@ -756,7 +822,7 @@ const GitHubSync = (() => {
       return r;
     } catch (e) { status('自动拉取失败：' + e.message); }
   }
-  return { getCfg, setCfg, configured, test, pullRaw, pullMerge, pushCurrent, publish, initAuto, autoPull, setAfterPull, status };
+  return { getCfg, setCfg, configured, lsBlocked: () => !_lsOK, test, pullRaw, pullMerge, pushCurrent, publish, initAuto, autoPull, setAfterPull, status };
 })();
 // ===== end GitHub 多设备同步 =====
 </script>
@@ -1015,7 +1081,7 @@ ${relayReq}直接输出续写正文（自然接在前面之后，不要另起重
   const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
   const esc = (s) => (s == null ? '' : String(s)).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
-  const state = { works: [], models: [], settings: null, currentWorkId: null, lastGen: null, abort: null };
+  const state = { works: [], models: [], settings: null, currentWorkId: null, lastGen: null, abort: null, batChapters: [], batchAbort: null, batChapReqs: [], _batChapReqCount: 0 };
   const PRESETS = {
     deepseek: { name: 'DeepSeek', baseUrl: 'https://api.deepseek.com', model: 'deepseek-chat' },
     zhipu: { name: '智谱 GLM', baseUrl: 'https://open.bigmodel.cn/api/paas/v4/', model: 'glm-4-flash' },
@@ -1049,6 +1115,58 @@ ${relayReq}直接输出续写正文（自然接在前面之后，不要另起重
     if (name === 'feedback') renderFeedback();
     if (name === 'lore') renderLore();
     if (name === 'outline') renderOutline();
+    if (name === 'batch') updateBatSelInfo();
+  }
+  // 长篇页：基于作品 / 续写起点（v19l补5）
+  function getBatWork() {
+    const sel = $('#batWork');
+    if (sel && sel.value) { const w = state.works.find(x => x.id === sel.value); if (w) return w; }
+    return null;
+  }
+  // 续写锚点：从所选章节之后接着写；取不到时兜底为全书最后一章
+  function batAnchorIdx(w) {
+    let idx = parseInt(($('#batChapter') || {}).value, 10);
+    if (isNaN(idx) || idx < 0 || !w.chapters[idx]) idx = w.chapters.length - 1;
+    return idx;
+  }
+  function renderBatWork() {
+    const sel = $('#batWork'); if (!sel) return;
+    const prev = sel.value;
+    sel.innerHTML = state.works.length
+      ? state.works.map(w => `<option value="${w.id}">${esc(w.title || '未命名')}（${w.chapters.length}章）</option>`).join('')
+      : '<option value="">（请先到「作品」页上传小说）</option>';
+    if (prev && state.works.some(w => w.id === prev)) { sel.value = prev; return; }
+    if (state.works.length) {
+      const sw = $('#selWork').value;
+      sel.value = (sw && state.works.some(w => w.id === sw)) ? sw : state.works[0].id;
+    }
+  }
+  function renderBatChapter() {
+    const sel = $('#batChapter'); if (!sel) return;
+    const w = getBatWork();
+    if (!w || !w.chapters.length) { sel.innerHTML = '<option value="">（该作品暂无章节）</option>'; return; }
+    const prev = parseInt(sel.value, 10);
+    sel.innerHTML = w.chapters.map((c, i) => `<option value="${i}">第 ${i + 1} 章 ${esc(c.title || '')}（${Novel.countWords(c.content)}字）</option>`).join('');
+    sel.value = (!isNaN(prev) && w.chapters[prev]) ? String(prev) : String(w.chapters.length - 1);
+  }
+  function updateBatSelInfo() {
+    renderBatWork(); renderBatChapter();
+    const el = $('#batSelInfo'); if (!el) return;
+    const w = getBatWork(); const m = getSelModel();
+    const wn = w ? ('《' + (w.title || '未命名') + '》（' + w.chapters.length + ' 章）') : '';
+    const mn = m ? (m.name || m.model) : '';
+    const anchor = w ? ('基于第 ' + (batAnchorIdx(w) + 1) + ' 章《' + (w.chapters[batAnchorIdx(w)] || {}).title + '》之后续写') : '';
+    el.textContent = (wn || mn)
+      ? ('当前续写作品：' + (wn || '❌ 未选') + '　·　' + anchor + '　·　当前模型：' + (mn || '❌ 未选（去「模型」页选）'))
+      : '尚未选择作品 / 模型：请先到「作品」页上传小说、「模型」页选模型，再回到本页操作。';
+    // 风格参考作品下拉（排除当前长篇页基于的作品本身）
+    const sel = $('#batStyleWork');
+    if (sel) {
+      const cur = sel.value;
+      const opts = state.works.filter(x => !w || x.id !== w.id).map(x => `<option value="${x.id}">${esc(x.title || '未命名')}</option>`).join('');
+      sel.innerHTML = '<option value="">不指定（仅模仿当前作品自身文风）</option>' + opts;
+      sel.value = cur; if (sel.value !== cur) sel.value = '';
+    }
   }
 
   /* ---------------- 作品 ---------------- */
@@ -1513,6 +1631,191 @@ ${relayReq}直接输出续写正文（自然接在前面之后，不要另起重
       else { out.value = (out.value || '') + '\n【生成失败】' + e.message; setGenButtons('done'); toast('生成失败：' + e.message); }
     }
   }
+  // ===================== 长篇批量续写 =====================
+  function buildLoreContext(w) {
+    const lo = getLore(w); if (!lo || !lo.auto) return '';
+    const ents = (lo.entries || []).filter(e => e.inject !== false && e.name && e.name.trim());
+    if (!ents.length) return '';
+    return ents.map(e => {
+      const tag = e.type === 'place' ? '地点/势力' : (e.type === 'faction' ? '势力' : '角色');
+      let s = '【' + tag + '】' + e.name.trim();
+      if (e.traits && e.traits.trim()) s += '\n- 性格/设定：' + e.traits.trim();
+      if (e.catchphrase && e.catchphrase.trim()) s += '\n- 口头禅：' + e.catchphrase.trim();
+      if (e.relations && e.relations.trim()) s += '\n- 与其他人关系：' + e.relations.trim();
+      if (e.note && e.note.trim()) s += '\n- 备注：' + e.note.trim();
+      return s;
+    }).join('\n');
+  }
+  // 长篇页参数统一读取（控制项就在本页，不再借用续写页的隐藏值）
+  function batParams() {
+    const total = Math.max(1000, parseInt($('#batTotal').value, 10) || 100000);
+    const chaps = Math.max(1, Math.min(60, parseInt($('#batChaps').value, 10) || 10));
+    const perChap = Math.round(total / chaps);
+    const stEl = $('#batStrength .on'), pvEl = $('#batPOV .on');
+    const strength = stEl ? stEl.dataset.v : 'high';
+    const pov = pvEl ? pvEl.dataset.v : 'auto';
+    const hook = !!$('#batHook .on');
+    const temp = Math.min(2, Math.max(0, parseFloat($('#batTemp').value) || 0.85));
+    const sample = Math.max(1, parseInt($('#batSample').value, 10) || 10);
+    const plot = $('#batPlot').value.trim();
+    const styleId = $('#batStyleWork').value;
+    let styleContext = '';
+    if (styleId) { const sw = state.works.find(x => x.id === styleId); if (sw && sw.chapters.length) styleContext = Novel.buildContext(sw.chapters, sw.chapters.length - 1, sample); }
+    return { total, chaps, perChap, strength, pov, hook, temp, sample, plot, styleContext };
+  }
+  function collectBat() {
+    const arr = []; const n = (state.batChapters || []).length;
+    for (let i = 1; i <= n; i++) { const ta = document.getElementById('batChap_' + i); arr.push(ta ? ta.value : (state.batChapters[i - 1] || '')); }
+    return arr;
+  }
+  async function genChapterText({ context, priorRelay, instruction, loreContext, fbList, strength, pov, temp, targetChars, signal, m, idx, styleContext }) {
+    let acc = '';
+    const totalChunks = Math.max(1, Math.ceil(targetChars / CHUNK_CHARS));
+    const maxChunks = Math.max(30, totalChunks * 3);
+    for (let c = 1; ; c++) {
+      const doneChars = acc.replace(/\s/g, '').length;
+      if (doneChars >= targetChars) break;
+      const thisTarget = Math.min(CHUNK_CHARS, targetChars - doneChars);
+      const isLast = (doneChars + thisTarget) >= targetChars;
+      const maxTokens = Math.ceil(thisTarget * 1.7) + 256;
+      const priorText = acc.length ? acc.slice(-1600) : (priorRelay || '');
+      const ta = document.getElementById('batChap_' + idx);
+      const messages = Prompt.buildMessages({
+        context, styleContext: styleContext || '', lastTitle: '前文', targetChars: thisTarget, totalChars: targetChars,
+        styleStrength: strength, keepPOV: pov, endHook: instruction.hook !== false && isLast, extraNote: instruction.extraNote || '',
+        priorText, chunkNo: c, totalChunks, requirements: instruction.requirements || [], feedback: fbList, loreContext
+      });
+      let ok = false, attempt = 0;
+      while (attempt < 3 && !ok) {
+        attempt++;
+        try {
+          const text = await streamChunk(messages, maxTokens, temp, m, (d, full) => { if (ta) ta.value = acc + full; }, signal);
+          if (!text || !text.replace(/\s/g, '')) { if (attempt < 3) { toast(`第${idx}章 第${c}段空返回，重试`); await sleep(1200); } }
+          else { acc = acc + text; ok = true; if (ta) ta.value = acc; }
+        } catch (e) { if (e.name === 'AbortError') throw e; if (attempt < 3) { toast(`第${idx}章 第${c}段中断，重试`); await sleep(1200 * attempt); } }
+      }
+      if (!ok) throw new Error('本章生成失败');
+      if (c >= maxChunks) break;
+      if (!isLast) await sleep(400);
+    }
+    return acc;
+  }
+  // 按章节数渲染「分章要求」输入框；章节数变化时保留已填内容
+  function renderBatChapReqs(force) {
+    const n = Math.max(1, parseInt($('#batChaps').value, 10) || 1);
+    if (!force && state._batChapReqCount === n) return;
+    const prev = state.batChapReqs || [];
+    const next = [];
+    let html = '';
+    for (let i = 1; i <= n; i++) {
+      const val = (prev[i - 1] != null) ? prev[i - 1] : '';
+      next[i - 1] = val;
+      html += '<label class="field"><span class="lbl">第 ' + i + ' 章 要求（可选）</span><textarea id="batChapReq_' + i + '" rows="2" placeholder="本章要发生的事件，每行一条（可留空）">' + esc(val) + '</textarea></label>';
+    }
+    const box = $('#batChapReqs'); if (box) box.innerHTML = html;
+    for (let i = 1; i <= n; i++) {
+      const ta = document.getElementById('batChapReq_' + i);
+      if (ta) ta.addEventListener('input', () => { state.batChapReqs[i - 1] = ta.value; });
+    }
+    state.batChapReqs = next;
+    state._batChapReqCount = n;
+  }
+  // 汇总全部剧情要求（整体剧情线 + 各章要求），供「🔍 校核」使用
+  function collectBatReqs() {
+    const reqs = [];
+    const plotLines = ($('#batPlot').value.trim() ? $('#batPlot').value.split(/\n+/).map(s => s.trim()).filter(Boolean) : []);
+    plotLines.forEach(r => reqs.push(r));
+    (state.batChapReqs || []).forEach((r, idx) => {
+      if (r && r.trim()) r.split(/\n+/).map(s => s.trim()).filter(Boolean).forEach(line => reqs.push('第 ' + (idx + 1) + ' 章：' + line));
+    });
+    return reqs;
+  }
+
+  async function startBatch() {
+    updateBatSelInfo();
+    const w = getBatWork(); if (!w) { toast('请先在本页「基于作品」选择作品（或到「作品」页上传小说）'); return; }
+    const m = getSelModel(); if (!m) { toast('请先在「模型」页配置并选择模型'); return; }
+    const P = batParams();
+    await runBatchGen(1, P, w, m, false);
+  }
+
+  async function resumeBatch() {
+    updateBatSelInfo();
+    const w = getBatWork(); if (!w) { toast('请先在本页「基于作品」选择作品'); return; }
+    const m = getSelModel(); if (!m) { toast('请先选择模型'); return; }
+    const P = batParams();
+    const chaps = P.chaps, perChap = P.perChap;
+    const hasBlocks = !!document.querySelector('#batResults .bat-chap');
+    const arr = hasBlocks ? collectBat() : [];
+    state.batChapters = arr;
+    if (!hasBlocks) toast('没有可继续的内容，将按当前设置从头开始生成');
+    const minLen = Math.max(200, Math.floor(perChap * 0.25));
+    let startIdx = chaps + 1;
+    for (let i = 1; i <= chaps; i++) {
+      if ((arr[i - 1] || '').replace(/\s/g, '').length < minLen) { startIdx = i; break; }
+    }
+    if (hasBlocks && startIdx > chaps) { toast('所有章节都已生成完毕，无需继续'); return; }
+    await runBatchGen(hasBlocks ? startIdx : 1, P, w, m, hasBlocks);
+  }
+
+  // 批量生成核心：从第 startIdx 章生成到第 chaps 章；keepResults=true 时保留已有章节块/内容（用于断点续生成）
+  async function runBatchGen(startIdx, P, w, m, keepResults) {
+    const total = P.total, chaps = P.chaps, perChap = P.perChap;
+    const fbList = Store.getFeedbacks().filter(f => f.use);
+    const anchorIdx = batAnchorIdx(w);
+    const anchorTitle = (w.chapters[anchorIdx] || {}).title || '';
+    const context = Novel.buildContext(w.chapters, anchorIdx, P.sample);
+    const loreContext = buildLoreContext(w);
+    if (!keepResults) { state.batChapters = []; $('#batResults').innerHTML = ''; $('#batCheckResult').innerHTML = ''; }
+    state.batchAbort = new AbortController();
+    $('#btnBatchStart').disabled = true; $('#btnBatchResume').disabled = true; $('#btnBatchRedo').disabled = true; $('#btnBatchStop').disabled = false;
+    $('#batProgBar').style.display = '';
+    const baseWords = state.batChapters.join('').replace(/\s/g, '').length;
+    $('#batProgBarFill').style.width = Math.min(100, Math.round(baseWords / total * 100)) + '%';
+    $('#batStatus').textContent = (startIdx > 1 ? '继续生成第 ' + startIdx + '～' + chaps + ' 章…' : '正在生成第 1/' + chaps + ' 章…');
+    try {
+      for (let i = startIdx; i <= chaps; i++) {
+        let block = document.getElementById('batChapBlock_' + i);
+        if (!block) {
+          block = document.createElement('div'); block.className = 'bat-chap'; block.id = 'batChapBlock_' + i;
+          block.innerHTML = '<div class="row spread"><b>第 ' + i + ' 章</b><button class="btn sm" data-batch-regen="' + i + '">↻ 重生成</button></div><textarea class="bat-ta" id="batChap_' + i + '" rows="8" placeholder="生成中…"></textarea>';
+          $('#batResults').appendChild(block);
+        }
+        $('#batStatus').textContent = '正在生成第 ' + i + '/' + chaps + ' 章（约 ' + perChap + ' 字）…';
+        const priorRelay = state.batChapters.slice(Math.max(0, i - 2), i).join('\n\n');
+        const chapReq = (state.batChapReqs && state.batChapReqs[i - 1] && state.batChapReqs[i - 1].trim()) ? state.batChapReqs[i - 1].trim() : '';
+        const bookNo = anchorIdx + 1 + i; // 本批第 i 章 = 全书第 bookNo 章
+        const instruction = {
+          hook: P.hook,
+          requirements: chapReq ? chapReq.split(/\n+/).map(s => s.trim()).filter(Boolean) : [],
+          extraNote: '【整体剧情线】\n' + (P.plot || '（无，请自行发挥）') + '\n【本章任务】基于原作第 ' + (anchorIdx + 1) + ' 章《' + anchorTitle + '》之后续写：本批第 ' + i + '/' + chaps + ' 章，对应全书第 ' + bookNo + ' 章。请自行规划本章情节与章节标题《第' + bookNo + '章 …》，承接上文、推进整体剧情线、章末留钩子。本章目标约 ' + perChap + ' 字（中文）。'
+        };
+        const text = await genChapterText({ context, priorRelay, instruction, loreContext, fbList, strength: P.strength, pov: P.pov, temp: P.temp, targetChars: perChap, signal: state.batchAbort.signal, m, idx: i, styleContext: P.styleContext });
+        while (state.batChapters.length < i) state.batChapters.push('');
+        state.batChapters[i - 1] = text;
+        const ta = document.getElementById('batChap_' + i); if (ta) ta.value = text;
+        const doneWords = state.batChapters.join('').replace(/\s/g, '').length;
+        $('#batProgBarFill').style.width = Math.min(100, Math.round(doneWords / total * 100)) + '%';
+      }
+      const totalWords = state.batChapters.join('').replace(/\s/g, '').length;
+      $('#batStatus').textContent = '✅ 已生成 ' + chaps + ' 章，共约 ' + totalWords + ' 字。可逐章修改后采用 / 存草稿 / 导出。';
+    } catch (e) {
+      // 中途停止/出错：已生成的章节块（含未完成章的已出内容）照样可用
+      const arr = collectBat();
+      if (arr.some(t => t.trim())) {
+        state.batChapters = arr;
+        const n = arr.filter(t => t.trim()).length;
+        const words = arr.join('').replace(/\s/g, '').length;
+        if (e && e.name === 'AbortError') $('#batStatus').textContent = '⏹ 已停止。已生成 ' + n + ' 章（约 ' + words + ' 字）保留在下方，可继续修改 / 校核 / 采用 / 存草稿 / 导出，或点「↪ 继续生成剩余章」。';
+        else $('#batStatus').textContent = '❌ 生成中断：' + (e && e.message || e) + '。已生成 ' + n + ' 章保留在下方。';
+      } else if (e && e.name === 'AbortError') {
+        $('#batStatus').textContent = '⏹ 已停止。尚无已生成内容。';
+      } else {
+        $('#batStatus').textContent = '❌ 生成中断：' + (e && e.message || e);
+      }
+    } finally { $('#btnBatchStart').disabled = false; $('#btnBatchResume').disabled = false; $('#btnBatchRedo').disabled = false; $('#btnBatchStop').disabled = true; }
+  }
+
   async function continueWrite() {
     // 接着上文续写：以文本框当前内容为基础（绝不清除），在其末尾追加新生成内容，
     // 仅对本次新填的「剧情要求」做核对/补全。可反复叠加，原内容始终保留。
@@ -1542,6 +1845,7 @@ ${relayReq}直接输出续写正文（自然接在前面之后，不要另起重
 
   /* ---------------- 剧情要求自检（生成后由模型逐条核对） ---------------- */
   let lastReviewCtx = null; // {m,text,reqs} 供「重新核对」复用
+  let lastReviewContainer = null; // 最近一次核对结果渲染到的容器（续写页=#reqCheckBox，长篇页=#batCheckResult），供「重新核对」复用
   let lastReqCheckResults = []; // 最近一次核对结果，供「沉淀为经验」引用
   let lastGlobalReqs = []; // v19i 全书级要求（拆章/大纲类），单次续写不参与核对，仅供结果卡片展示说明
   // 超长正文分段核对：每段独立调用模型判断，再按条合并——
@@ -1573,8 +1877,9 @@ ${relayReq}直接输出续写正文（自然接在前面之后，不要另起重
     merged.forEach(r => { if (!r.met && !r.note) r.note = '各分段均未发现已体现的描写'; });
     return merged; // 即使个别段失败，也基于已核对段给出尽力结果
   }
-  async function reviewRequirements(m, text, reqs) {
-    const box = $('#reqCheckBox');
+  async function reviewRequirements(m, text, reqs, container) {
+    const box = container || $('#reqCheckBox');
+    lastReviewContainer = box;
     lastReviewCtx = { m, text, reqs };
     box.style.display = '';
     box.innerHTML = '<div class="hint">正在逐条核对剧情要求……</div>';
@@ -1586,17 +1891,17 @@ ${relayReq}直接输出续写正文（自然接在前面之后，不要另起重
       // 超长正文：整篇一次性塞给模型极易空返回（字数被思考耗尽/超上下文），改为分段核对后合并
       if (text.replace(/\s/g, '').length > 12000) {
         results = await reviewLongText(m, text, reqs);
-        if (results) { renderReqCheck(results, reqs); return results; }
-        renderReqFail(null, '正文过长，自动分段核对未成功（可换普通对话模型后点「重新核对」再试）');
+        if (results) { renderReqCheck(results, reqs, box); return results; }
+        renderReqFail(null, '正文过长，自动分段核对未成功（可换普通对话模型后点「重新核对」再试）', box);
         return null;
       }
       raw = await chatSmart(m, [{ role: 'system', content: sys }, { role: 'user', content: user }], 4000, 0.2);
       results = parseReqJson(raw, reqs);
-      if (results) { renderReqCheck(results, reqs); return results; }
-      renderReqFail(raw);
+      if (results) { renderReqCheck(results, reqs, box); return results; }
+      renderReqFail(raw, null, box);
       return null;
     } catch (e) {
-      renderReqFail(null, e.message);
+      renderReqFail(null, e.message, box);
       return null;
     }
   }
@@ -1620,7 +1925,7 @@ ${relayReq}直接输出续写正文（自然接在前面之后，不要另起重
   // （v19e 已取消「整篇修订」：约束类要求被违反时无法廉价自动修正，改为提示用户手动在文本框删去违反处，并支持「沉淀为经验」让下次生成规避，避免整章重写浪费 token）
   function bindRecheck(container) {
     const b = container.querySelector('#btnRecheck');
-    if (b && lastReviewCtx) b.addEventListener('click', () => reviewRequirements(lastReviewCtx.m, lastReviewCtx.text, lastReviewCtx.reqs));
+    if (b && lastReviewCtx) b.addEventListener('click', () => reviewRequirements(lastReviewCtx.m, lastReviewCtx.text, lastReviewCtx.reqs, container));
     const ap = container.querySelector('#btnAppendPos');
     if (ap) ap.addEventListener('click', () => appendUnmetManually(ap));
     const sink = container.querySelector('#btnSinkAll');
@@ -1639,8 +1944,8 @@ ${relayReq}直接输出续写正文（自然接在前面之后，不要另起重
       renderFeedback(); toast('已沉淀为纠错经验，下次生成自动带上');
     }));
   }
-  function renderReqFail(raw, errMsg) {
-    const box = $('#reqCheckBox');
+  function renderReqFail(raw, errMsg, container) {
+    const box = container || $('#reqCheckBox');
     const snippet = raw ? esc(String(raw).replace(/\s+/g, ' ').slice(0, 200)) : '';
     box.innerHTML = `<div class="hint">核对结果解析失败（不影响已生成的续写）。${errMsg ? '原因：' + esc(errMsg) + '。' : ''}${snippet ? '模型返回片段：<code>' + snippet + '</code>' : '模型返回为空。'}点「重新核对」用当前正文再试一次。若反复提示「返回为空」，多半是当前模型为「深度思考」类（思考就把输出字数用完了），换个普通对话模型再核对即可。</div><button class="btn" id="btnRecheck" style="margin-top:8px">重新核对</button>`;
     bindRecheck(box);
@@ -1685,20 +1990,21 @@ ${relayReq}直接输出续写正文（自然接在前面之后，不要另起重
       return { req: r, met: found ? !!found.met : false, note: found ? (found.note || '') : '未返回核对结果', type: isNegativeReq(r) ? 'neg' : 'pos' };
     });
   }
-  function renderReqCheck(results, reqs) {
-    const box = $('#reqCheckBox');
+  function renderReqCheck(results, reqs, container) {
+    const box = container || $('#reqCheckBox');
+    const isWritePage = (box === $('#reqCheckBox')); // 续写页才显示「追加补全」与全书级要求横幅；长篇页按章节分块，不适用
     lastReqCheckResults = results;
     const metCount = results.filter(r => r.met).length;
     const noCnt = results.length - metCount;
     const items = results.map((r, i) => `<div class="req-item ${r.met ? 'ok' : 'no'}"><span class="req-badge">${r.met ? '✅' : '❌'}</span><span class="req-text">${esc(r.req)}</span><span class="req-note">${esc(r.note || '')}</span>${r.met ? '' : `<div class="row" style="margin-top:6px"><button class="btn sm" data-fact="tofb" data-idx="${i}">🧠 沉淀为经验</button><span class="meta">点一下即可，下次生成会重点强调这条</span></div>`}</div>`).join('');
     const negNo = results.filter(r => !r.met && r.type === 'neg').length;
     const posNo = results.filter(r => !r.met && r.type === 'pos').length;
-    const negHint = negNo ? `<div class="hint" style="margin-top:8px;color:#b45309">⚠️ 有 ${negNo} 条约束类要求未满足（如"不要出现无关人物"）。这类约束无法靠"追加"自动修正，且整篇重写较费 token——建议直接在上方文本框手动删去违反处；也可点「沉淀为经验」，下次生成会重点规避。</div>` : '';
-    const gBanner = (lastGlobalReqs && lastGlobalReqs.length)
+    const negHint = negNo ? `<div class="hint" style="margin-top:8px;color:#b45309">⚠️ 有 ${negNo} 条约束类要求未满足（如"不要出现无关人物"）。这类约束无法靠"追加"自动修正，且整篇重写较费 token——建议直接手动删去违反处；也可点「沉淀为经验」，下次生成会重点规避。</div>` : '';
+    const gBanner = (isWritePage && lastGlobalReqs && lastGlobalReqs.length)
       ? `<div class="hint" style="margin-top:8px;color:#1d4ed8">ⓘ 另有 ${lastGlobalReqs.length} 条全书级要求（如「${esc(lastGlobalReqs[0])}」）未参与本次核对：续写一次只写"下一章"，拆章/大纲类目标无法在一次生成里体现，已随剧情要求注入生成提示，靠后续多次续写逐步达成，不会误报、也不会触发追加补全。</div>` : '';
-    const fixBtn = posNo ? `<button class="btn sm primary" id="btnAppendPos">✍️ 追加补全 ${posNo} 条剧情（不删原文）</button>` : '';
+    const fixBtn = (isWritePage && posNo) ? `<button class="btn sm primary" id="btnAppendPos">✍️ 追加补全 ${posNo} 条剧情（不删原文）</button>` : '';
     const sinkAll = noCnt ? `<div class="row wrap" style="margin-top:8px">${fixBtn}<button class="btn sm" id="btnSinkAll">一键加入纠错记忆</button>${posNo ? '<span class="meta">补全段会紧接正文末尾续写，原稿保留</span>' : ''}</div>` : '';
-    box.innerHTML = `<div class="req-title">剧情要求核对（${metCount}/${reqs.length} 已体现）</div>${items}${gBanner}${negHint}${sinkAll}<div style="margin-top:8px"><button class="btn" id="btnRecheck">重新核对</button></div><div class="hint">模型自检结果，仅供参考。剧情类未体现优先点「追加补全」（往末尾续写、不删原文）；约束类被违反需手动在文本框编辑，或重新生成整章（费 token）。注意「重新生成」会清空当前内容。</div>`;
+    box.innerHTML = `<div class="req-title">剧情要求核对（${metCount}/${reqs.length} 已体现）</div>${items}${gBanner}${negHint}${sinkAll}<div style="margin-top:8px"><button class="btn" id="btnRecheck">重新核对</button></div><div class="hint">模型自检结果，仅供参考。${isWritePage ? '剧情类未体现优先点「追加补全」（往末尾续写、不删原文）；约束类被违反需手动在文本框编辑，或重新生成整章（费 token）。' : '未体现的剧情/约束类要求，可回到对应章节文本框手动修改，或点「🧠 沉淀为经验」让下次生成重点规避。'}注意「重新生成」会清空当前内容。</div>`;
     bindRecheck(box);
   }
   async function appendUnmetManually(btn) {
@@ -1957,11 +2263,10 @@ ${relayReq}直接输出续写正文（自然接在前面之后，不要另起重
     s.split(/\r?\n/).forEach(line => { const t = line.replace(/^[\d一二三四五六七八九十]+[.、)]\s*|[-*]\s*/g, '').trim(); if (t && t.length < 60) out.push(t); });
     return out.slice(0, 12);
   }
-  async function aiCritique() {
-    const out = ($('#writeOutput').value || '').trim();
+  async function aiCritiqueText(out, reqs) {
     if (!out) { toast('请先生成续写内容'); return; }
     const m = getSelModel(); if (!m) { toast('请先在「模型」页配置并选择模型'); return; }
-    const reqs = ($('#inReq').value || '').trim().split(/\n+/).map(s => s.trim()).filter(Boolean).filter(r => !isGlobalReq(r)); // 全书级要求不参与自评（单次续写无从体现）
+    reqs = (reqs || []).map(s => String(s).trim()).filter(Boolean).filter(r => !isGlobalReq(r)); // 全书级要求不参与自评（单次续写无从体现）
     const sys = '你是严格的写作质检员。阅读【本次续写】，对照【作者剧情要求】（如有），找出续写中"要求没做到位 / 文风不符 / 明显可改进"的点。只输出一个 JSON 数组（不要代码块、不要其他文字），每个元素是一条写作规则，30字以内、可执行。\n重要：规则必须是通用的写作方法论，不要包含具体人名、地名、专有名词，用「主角 / 反派 / 配角 / 某角色」等通用称谓代替；例如"反派的黑化必须真实发生，不要只提及"。若一切合格可输出空数组 []。';
     const user = '【作者剧情要求】\n' + (reqs.length ? reqs.map((r, i) => `${i + 1}. ${r}`).join('\n') : '（无，仅做文风与质量自检）') + '\n\n【本次续写】\n' + out + '\n\n只输出 JSON 数组。';
     toast('AI 正在扫描续写、找可改进点…');
@@ -1971,6 +2276,11 @@ ${relayReq}直接输出续写正文（自然接在前面之后，不要另起重
       if (!arr.length) { toast('AI 未返回可改进点（可能已合格）'); return; }
       renderCritiqueModal(arr);
     } catch (e) { toast('AI 找问题失败：' + e.message); }
+  }
+  async function aiCritique() {
+    const out = ($('#writeOutput').value || '').trim();
+    const reqs = ($('#inReq').value || '').trim().split(/\n+/).map(s => s.trim()).filter(Boolean);
+    return aiCritiqueText(out, reqs);
   }
   function renderCritiqueModal(arr) {
     const idchk = 'rc_' + Date.now().toString(36);
@@ -2410,7 +2720,7 @@ ${relayReq}直接输出续写正文（自然接在前面之后，不要另起重
     // GitHub 同步（任何操作前先把输入框内容落盘，避免"填了忘点保存"导致永远提示未配置）
     const ghSaveFromUI = () => { const gc = GitHubSync.getCfg(); gc.owner = $('#ghOwner').value.trim(); gc.repo = $('#ghRepo').value.trim(); gc.branch = $('#ghBranch').value.trim() || 'main'; gc.path = $('#ghPath').value.trim() || 'novel-writer-data.json'; gc.token = $('#ghToken').value.trim(); GitHubSync.setCfg(gc); };
     $('#ghSave').addEventListener('click', () => { ghSaveFromUI(); toast('已保存同步设置'); });
-    $('#ghTest').addEventListener('click', async () => { ghSaveFromUI(); GitHubSync.status('连接测试中…'); const r = await GitHubSync.test(); GitHubSync.status(r.ok ? '✅ 连接成功：' + r.msg : '❌ ' + r.msg); toast(r.ok ? '连接成功' : '连接失败'); });
+    $('#ghTest').addEventListener('click', async () => { const gc0 = ghSaveFromUI(); if (gc0.owner && gc0.repo && gc0.token && !GitHubSync.configured()) { GitHubSync.status('⚠️ 当前环境（如预览窗口）禁用了本地存储，配置存不住。请用浏览器直接打开本地 HTML 文件后再操作'); toast('当前环境无法保存配置'); return; } GitHubSync.status('连接测试中…'); const r = await GitHubSync.test(); GitHubSync.status(r.ok ? '✅ 连接成功：' + r.msg : '❌ ' + r.msg); toast(r.ok ? '连接成功' : '连接失败'); });
     $('#ghPush').addEventListener('click', async () => { ghSaveFromUI(); GitHubSync.status('上传中…'); const r = await GitHubSync.pushCurrent(); GitHubSync.status(r.ok ? '✅ 已上传到 GitHub' : '❌ ' + r.msg); toast(r.ok ? '已上传' : '上传失败'); });
     $('#ghPull').addEventListener('click', async () => { ghSaveFromUI(); GitHubSync.status('拉取合并中…'); const r = await GitHubSync.pullMerge(); GitHubSync.status(r.ok ? '✅ ' + r.msg : '❌ ' + r.msg); if (r.ok) { load(); renderWorks(); renderModels(); renderSettings(); renderFeedback(); renderDrafts(); toast('已合并：' + r.msg); } else toast('拉取失败'); });
     $('#ghAutoBtn').addEventListener('click', () => { const gc = GitHubSync.getCfg(); gc.auto = !gc.auto; GitHubSync.setCfg(gc); $('#ghAutoBtn').textContent = '自动同步：' + (gc.auto ? '开' : '关'); toast('自动同步：' + (gc.auto ? '开' : '关')); });
@@ -2419,6 +2729,7 @@ ${relayReq}直接输出续写正文（自然接在前面之后，不要另起重
       ghSaveFromUI();
       const gc = GitHubSync.getCfg();
       if (!gc.token) { $('#pubStatus').textContent = '❌ 请先在上方的 GitHub 多设备同步里填写并保存 PAT（需 repo 权限）'; toast('请先配置 PAT'); return; }
+      if (GitHubSync.lsBlocked() && !GitHubSync.configured()) { $('#pubStatus').textContent = '⚠️ 当前环境（如预览窗口）禁用了本地存储，无法读取配置。请用浏览器直接打开本地 HTML 文件后再发布'; toast('当前环境无法读取配置'); return; }
       const owner = gc.owner || 'fuduoduo2';
       const repo = $('#pubRepo').value.trim() || 'novel-web';
       const branch = $('#pubBranch').value.trim() || 'main';
@@ -2432,6 +2743,116 @@ ${relayReq}直接输出续写正文（自然接在前面之后，不要另起重
       const r = await GitHubSync.publish({ owner, repo, branch, path, token: gc.token, text });
       $('#pubStatus').textContent = r.ok ? ('✅ 已发布到 ' + repo + '/' + path + '，请等 1-2 分钟后强刷网页版（Ctrl+F5 / 无痕窗口 / 网址加 ?v= 时间戳）') : ('❌ ' + r.msg);
       toast(r.ok ? '发布成功' : '发布失败');
+    });
+
+    // 长篇批量续写
+    $('#btnBatchStart').addEventListener('click', startBatch);
+    $('#btnBatchResume').addEventListener('click', resumeBatch);
+    $('#btnBatchStop').addEventListener('click', () => { if (state.batchAbort) state.batchAbort.abort(); });
+    // 章节数变化 → 重新渲染「分章要求」输入框（保留已填内容）
+    $('#batChaps').addEventListener('input', () => renderBatChapReqs());
+    $('#batChaps').addEventListener('change', () => renderBatChapReqs());
+    renderBatChapReqs(true); // 初始化渲染（按当前默认章节数）
+    // 作品 / 模型选择变化时刷新长篇页顶部的提示行
+    $('#selWork').addEventListener('change', updateBatSelInfo);
+    $('#selModel').addEventListener('change', updateBatSelInfo);
+    // 长篇页自己的「基于作品」切换 → 联动刷新「续写起点」章节下拉
+    $('#batWork').addEventListener('change', updateBatSelInfo);
+    // 「续写起点」切换 → 实时刷新顶部锚点提示
+    $('#batChapter').addEventListener('change', updateBatSelInfo);
+    bindChipGroup('#batStrength'); bindChipGroup('#batPOV'); bindChipGroup('#batHook');
+    $('#batResults').addEventListener('click', async (e) => {
+      const btn = e.target.closest('[data-batch-regen]'); if (!btn) return;
+      const w = getBatWork(); const m = getSelModel(); if (!w) { toast('请先在本页「基于作品」选择作品'); return; }
+      if (!m) { toast('请先选择模型'); return; }
+      const i = +btn.dataset.batchRegen;
+      const edited = collectBat();
+      const priorRelay = edited.slice(Math.max(0, i - 2), i).join('\n\n');
+      const P = batParams();
+      const fbList = Store.getFeedbacks().filter(f => f.use);
+      const anchorIdx = batAnchorIdx(w); const bookNo = anchorIdx + 1 + i;
+      const context = Novel.buildContext(w.chapters, anchorIdx, P.sample);
+      const loreContext = buildLoreContext(w);
+      const instruction = { hook: P.hook, extraNote: '【整体剧情线】\n' + (P.plot || '（无，请自行发挥）') + '\n【本章任务】基于原作第 ' + (anchorIdx + 1) + ' 章之后续写：本批第 ' + i + '/' + P.chaps + ' 章，对应全书第 ' + bookNo + ' 章。请自行规划本章情节与章节标题《第' + bookNo + '章 …》，承接上文、推进整体剧情线、章末留钩子。本章目标约 ' + P.perChap + ' 字。' };
+      btn.disabled = true; $('#batStatus').textContent = '正在重生成第 ' + i + ' 章…';
+      try { const text = await genChapterText({ context, priorRelay, instruction, loreContext, fbList, strength: P.strength, pov: P.pov, temp: P.temp, targetChars: P.perChap, signal: null, m, idx: i, styleContext: P.styleContext }); const ta = document.getElementById('batChap_' + i); if (ta) ta.value = text; }
+      catch (e) { toast('重生成失败：' + (e && e.message || e)); }
+      finally { btn.disabled = false; $('#batStatus').textContent = '可继续修改 / 采用 / 存草稿 / 导出。'; }
+    });
+    // 采用并追加：把已生成（含手改）的章节并入所选作品——插入到「续写起点」章之后（默认全书末尾追加）
+    $('#btnBatchAdopt').addEventListener('click', () => {
+      const w = getBatWork(); if (!w) { toast('请先在本页「基于作品」选择作品'); return; }
+      const arr = collectBat(); const full = arr.join('\n\n');
+      if (!full.replace(/\s/g, '')) { toast('还没有生成内容'); return; }
+      const anchorIdx = batAnchorIdx(w);
+      const atEnd = anchorIdx >= w.chapters.length - 1;
+      const posText = atEnd ? '正文末尾' : ('第 ' + (anchorIdx + 1) + ' 章《' + ((w.chapters[anchorIdx] || {}).title || '') + '》之后');
+      if (!confirm(`确定把这 ${arr.length} 章插入到《${w.title}》${posText}吗？\n此操作会修改原作文本，建议先「导出备份」。`)) return;
+      const parts = w.chapters.map(c => (c.title || '') + '\n' + (c.content || ''));
+      const before = parts.slice(0, anchorIdx + 1).join('\n\n').replace(/\s+$/, '');
+      const after = parts.slice(anchorIdx + 1).join('\n\n');
+      w.text = (before ? before + '\n\n' : '') + full + (after.trim() ? '\n\n' + after : '');
+      w.chapters = Novel.splitChapters(w.text);
+      w.updatedAt = Date.now(); persistWorks();
+      renderWorks(); updateBatSelInfo();
+      toast(`已插入 ${arr.length} 章到《${w.title}》${posText}（现 ${w.chapters.length} 章）`);
+    });
+    // ↻ 重新生成：清空当前结果，按当前设置整批重写
+    $('#btnBatchRedo').addEventListener('click', () => {
+      const has = collectBat().some(t => t.trim());
+      if (has && !confirm('确定清空当前全部章节并按当前设置重新生成吗？未存草稿的部分将不可恢复。')) return;
+      startBatch();
+    });
+    $('#btnBatchDiscard').addEventListener('click', () => {
+      if (!confirm('确定丢弃全部已生成内容并清空？未存草稿的部分将不可恢复。')) return;
+      state.batChapters = []; $('#batResults').innerHTML = '';
+      $('#batProgBar').style.display = 'none';
+      $('#batStatus').textContent = '已清空。';
+    });
+    $('#btnBatchSave').addEventListener('click', () => {
+      const w = getBatWork(); const arr = collectBat(); const full = arr.join('\n\n');
+      if (!full.trim()) { toast('还没有生成内容'); return; }
+      Store.addDraft({ title: '长篇批量-《' + (w ? w.title : '小说') + '》-' + arr.length + '章', workTitle: w ? w.title : '未选作品', source: 'batch', content: full });
+      toast('已存入草稿箱');
+    });
+    $('#btnBatchExport').addEventListener('click', () => {
+      const w = getBatWork(); const arr = collectBat(); const full = arr.join('\n\n');
+      if (!full.trim()) { toast('还没有生成内容'); return; }
+      saveTextFile('长篇批量-《' + (w ? w.title : '小说') + '》-' + arr.length + '章.txt', full);
+    });
+    // 🧠 记录本次纠错：对长篇已生成内容记一条经验规则（下次生成自动带上）
+    $('#btnBatchRecordFix').addEventListener('click', () => {
+      const full = collectBat().join('\n\n');
+      if (!full.replace(/\s/g, '')) { toast('还没有生成内容'); return; }
+      openRecordFix('', full);
+    });
+    // 🔍 AI 找问题：AI 扫描长篇已生成内容，找可改进点并沉淀为经验
+    $('#btnBatchCritique').addEventListener('click', async () => {
+      const full = collectBat().join('\n\n');
+      if (!full.replace(/\s/g, '')) { toast('还没有生成内容'); return; }
+      const m = getSelModel(); if (!m) { toast('请先在「模型」页配置并选择模型'); return; }
+      await aiCritiqueText(full, collectBatReqs());
+    });
+    // 📚 导出整本：导出「基于作品」的整本正文（含此前已并入的章节）
+    $('#btnBatchExportAll').addEventListener('click', () => {
+      const w = getBatWork();
+      if (!w) { toast('请先在本页「基于作品」选择作品'); return; }
+      let txt = '';
+      if (w.author) txt += '作者：' + w.author + '\n';
+      (w.chapters || []).forEach(c => { txt += (c.title || '') + '\n' + (c.content || c.raw || '') + '\n\n'; });
+      if (!txt.trim() && w.text) txt = w.text;
+      if (!txt.trim()) { toast('作品内容为空，无法导出'); return; }
+      showExportModal(txt, (w.title || '小说').replace(/[\\/:*?"<>|]/g, '_') + '.txt', false);
+    });
+    // 校核剧情要求：用「整体剧情线 + 各章要求」逐条核对已生成的全部章节（支持超长分段核对）
+    $('#btnBatchCheck').addEventListener('click', async () => {
+      const arr = collectBat(); const full = arr.join('\n\n');
+      if (!full.replace(/\s/g, '')) { toast('还没有生成内容，先点「开始批量续写」或等生成一些章节'); return; }
+      const m = getSelModel(); if (!m) { toast('请先在「模型」页配置并选择模型'); return; }
+      const reqs = collectBatReqs();
+      if (!reqs.length) { toast('长篇页「整体剧情线」与各章要求均为空，没有可校核的内容'); return; }
+      $('#batCheckResult').style.display = '';
+      await reviewRequirements(m, full, reqs, $('#batCheckResult'));
     });
 
     // 续写页
