@@ -147,6 +147,16 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--primary); o
 .chapter-item .t { font-weight: 600; font-size: 14px; }
 .chapter-item .c { color: var(--text-soft); font-size: 12px; }
 
+.chapter-row { display: flex; align-items: center; gap: 10px; border: 1px solid var(--border); border-radius: 10px; padding: 8px 10px; margin-bottom: 8px; background: var(--surface); }
+.chapter-row.dragging { opacity: .45; }
+.chapter-row .drag { cursor: grab; color: var(--text-soft); font-size: 16px; user-select: none; }
+.chapter-row .ch-idx { width: 22px; text-align: center; color: var(--text-soft); font-size: 12px; flex: none; }
+.chapter-row .ch-main { flex: 1; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.chapter-row .ch-title, .chapter-row .ch-syn { width: 100%; box-sizing: border-box; font-size: 13px; }
+.chapter-row .ch-syn { color: var(--text-soft); }
+.chapter-row .ch-wc { font-size: 12px; color: var(--text-soft); flex: none; }
+.chapter-row .row { flex: none; }
+
 .badge { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 999px; background: var(--surface-2); color: var(--primary); margin-left: 6px; }
 
 .model-preset { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
@@ -277,8 +287,8 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--primary); o
           <label data-page-node-id="yazGxbwLX9JRFfsnrsibdV" class="field"><span data-page-node-id="hgMjwuGE292k8LE1RYRYfA" class="lbl"><!--pnid:Hbiqrl8D17BZWfM1KhFqMy-->喂给模型的样本章数</span><input data-page-node-id="GhSeNXlL9ffuRjG0UdLwii" id="inSample" max="80" min="1" type="number"></label>
           <label data-page-node-id="MYMfx1BTQkMFYbIrrVePxa" class="field"><span data-page-node-id="mV47QeFZkbovjTIgz21VoI" class="lbl"><!--pnid:KsWQkdzFuqkzPPlCD5yAWS-->额外要求（可选）</span>
             <textarea data-page-node-id="OPA0AounTjPzgJhDFvdX9s" id="inExtra" placeholder="例如：这一章重点推进感情线；不要引入新配角；保持冷峻文风……"></textarea></label>
-          <label data-page-node-id="M28wH9clYUQVCkCAkORJ7J" class="field"><span data-page-node-id="RnrUnFtWND7oHse1lmIkdd" class="lbl"><!--pnid:yxgIcEtAKg56C96t1IN2JT-->剧情要求（每行一条，生成后自动逐条核对是否写进续写）</span>
-            <textarea data-page-node-id="tkTA2FnDMSYfTyrDpv7CZM" id="inReq" placeholder="每行一条具体事件（谁+发生什么），例如：&#10;主角在密道发现身世秘密&#10;反派当众揭穿配角的背叛"></textarea></label>
+          <label data-page-node-id="M28wH9clYUQVCkCAkORJ7J" class="field"><span data-page-node-id="RnrUnFtWND7oHse1lmIkdd" class="lbl"><!--pnid:yxgIcEtAKg56C96t1IN2JT-->剧情要求（每行一条，生成后自动逐条核对是否写进续写；「分8-10个章节」这类全书级要求只注入提示、不参与单次核对）</span>
+            <textarea data-page-node-id="tkTA2FnDMSYfTyrDpv7CZM" id="inReq" placeholder="每行一条具体事件（谁+发生什么），例如：&#10;主角在密道发现身世秘密&#10;反派当众揭穿配角的背叛&#10;全书级目标（如：分8-10个章节）会注入提示，但不参与单次核对"></textarea></label>
         </div>
         <div class="card" id="reqHistCard">
           <h3>📌 我的常用剧情要求</h3>
@@ -302,11 +312,56 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--primary); o
             <button data-page-node-id="lKGQBnGMAhk5OJV8mBi5MR" class="btn" disabled id="btnSaveDocx"><!--pnid:Kbc5d9CyeNc6DKHuzbHYDF-->导出续写</button>
             <button data-page-node-id="AsC94LHDUO4PyZ7aHJ7LRL" class="btn" disabled id="btnRedo"><!--pnid:5hFM5sZTgTqyZvWmmAxEys-->重新生成</button>
             <button data-page-node-id="FrANUsF0XdUtCuprrwhcRO" class="btn ghost" disabled id="btnDiscard"><!--pnid:ucy0612VCoEHmrSVfHyQUs-->丢弃</button>
+            <button class="btn" disabled id="btnSaveDraft">💾 存草稿</button>
             <button data-page-node-id="jIkxA1RNGDSx49LgyfM87v" class="btn" disabled id="btnRecordFix"><!--pnid:k5WtUDbI6JebIeIo8qTOb5-->记录本次纠错</button>
             <button data-page-node-id="zmlVE3RLsAPmx4VKtpewGx" class="btn" disabled id="btnAiCritique"><!--pnid:3edZlGuQYiLIRzzKPOG0gv-->AI 找问题</button>
             <button data-page-node-id="1T29CFnCdgUIcoC8BG2uBl" class="btn" disabled id="btnExportAll"><!--pnid:4jjvKYIWht7gtGMsI6tsWW-->导出整本</button>
           </div>
           <div data-page-node-id="KYQSZPnqrPDG7RpMpAUQ4S" class="card" id="reqCheckBox" style="display:none; margin-top:12px"></div>
+        </div>
+      </div>
+    </section>
+
+    <!--pnid:lorePage--><!-- 设定 / 世界观记忆库 -->
+    <section class="page" id="page-lore">
+      <div class="card">
+        <h3>📖 设定 / 世界观记忆库（Lorebook）</h3>
+        <div class="hint">把角色、地点、势力设定成卡片，续写时可一键注入上下文，让 AI 始终记得人物性格、口头禅、关系，避免「人设崩塌 / 写着写着忘了前面」。数据只存在你本机与你的同步仓库，不外传第三方。</div>
+        <label class="field"><span class="lbl">选择作品</span><select id="selLoreWork"></select></label>
+        <label class="field" style="display:flex;align-items:center;gap:8px"><input type="checkbox" id="loreAuto"> 续写时自动注入「已勾选注入」的设定条目</label>
+        <div id="loreEditor" style="display:none">
+          <h4 style="margin:14px 0 6px">添加设定条目</h4>
+          <div class="row wrap">
+            <select id="loreType"><option value="char">角色</option><option value="place">地点</option><option value="faction">势力</option></select>
+            <input id="loreName" placeholder="名称（如：林惊蛰 / 北境要塞 / 影阁）" style="flex:1;min-width:200px">
+          </div>
+          <div class="row wrap" style="margin-top:8px">
+            <input id="loreTraits" placeholder="性格 / 设定（如：外冷内热，剑术天才）" style="flex:1;min-width:200px">
+            <input id="loreCatch" placeholder="口头禅（可选）" style="flex:1;min-width:160px">
+          </div>
+          <div class="row wrap" style="margin-top:8px">
+            <input id="loreRel" placeholder="关系（如：与女主青梅竹马，彼此敌对于影阁）" style="flex:1;min-width:200px">
+          </div>
+          <textarea id="loreNote" placeholder="备注 / 背景（可选）" style="margin-top:8px"></textarea>
+          <div class="row" style="margin-top:8px">
+            <label style="display:flex;align-items:center;gap:6px"><input type="checkbox" id="loreInject" checked> 续写时注入</label>
+            <button class="btn primary" id="loreAdd">＋ 添加条目</button>
+          </div>
+          <h4 style="margin:16px 0 6px">已保存设定（共 <span id="loreCount">0</span> 条）</h4>
+          <div id="loreList"></div>
+        </div>
+      </div>
+    </section>
+
+    <!--pnid:outlinePage--><!-- 大纲 / 章节树 -->
+    <section class="page" id="page-outline">
+      <div class="card">
+        <h3>🌳 大纲 / 章节树</h3>
+        <div class="hint">拖动 ⠿ 可调整章节顺序，或点 ▲▼ 上下移。每章可写一句话梗概（卡点 / 剧情大纲），方便把握全书节奏。也可「＋ 规划新章」先列大纲、再逐章续写。改动自动保存。</div>
+        <label class="field"><span class="lbl">选择作品</span><select id="selOutlineWork"></select></label>
+        <div id="outlineEditor" style="display:none">
+          <div class="row" style="margin-top:8px"><button class="btn" id="outlineAdd">＋ 规划新章</button><span class="meta" id="outlineMeta"></span></div>
+          <div id="outlineList" style="margin-top:10px"></div>
         </div>
       </div>
     </section>
@@ -391,6 +446,18 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--primary); o
         </div>
         <p class="hint" id="ghStatus">未连接。</p>
       </div>
+      <div class="card">
+        <h3>🚀 一键发布到网页版（GitHub Pages）</h3>
+        <p class="hint">把本工具（单文件 HTML）直接发布到你公开的 <code>novel-web</code> 仓库，省去每次去 GitHub 网页手动上传（很多人拖完文件忘了点 Commit changes）。发布用的 PAT 复用上方「GitHub 多设备同步」里填的令牌（需有 repo 权限）。请确认目标仓库已开启 Pages（Settings → Pages → 选对应分支根目录）。发布后等 1-2 分钟 Pages 自动重建，再强刷网页版。</p>
+        <label class="field"><span class="lbl">发布目标仓库</span><input id="pubRepo" placeholder="novel-web"></label>
+        <label class="field"><span class="lbl">分支</span><input id="pubBranch" value="main"></label>
+        <label class="field"><span class="lbl">文件路径</span><input id="pubPath" value="index.html"></label>
+        <label class="field"><span class="lbl">选择本地 HTML 文件</span><input type="file" id="pubFile" accept=".html,.htm"></label>
+        <div class="row wrap">
+          <button class="btn primary" id="btnPublish">🚀 一键发布</button>
+        </div>
+        <p class="hint" id="pubStatus">未发布。选择本地 HTML 文件后点上方按钮即可。</p>
+      </div>
     </section>
 
     <section data-page-node-id="nwgdVws0F1ZwUb3gzZLI5N" class="page" id="page-feedback">
@@ -422,6 +489,8 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--primary); o
     <nav data-page-node-id="sNLxSVADTGoCEOcsHtdoFU" class="tabbar">
       <div data-page-node-id="fCmR27yFXqTJvmD6NlqySu" class="tab on" data-tab="works"><span data-page-node-id="7Hh1Wesu6LYlDwStjMctTa" class="ic"><!--pnid:LY782GwT238Yi6Tg7IzNrE-->📚</span><!--pnid:UEaV5O8mLWjInBbZv3bngy-->作品</div>
       <div data-page-node-id="Vn0pCbviLZs8xzd5g6PKgF" class="tab" data-tab="write"><span data-page-node-id="Kxf8fGox0QLTnfs6zkpg7Y" class="ic"><!--pnid:Uy59E1DZoVIAxmYBLR2nl0-->✍️</span><!--pnid:VAS8ztKHkLcVecHOVuB3rw-->续写</div>
+      <div class="tab" data-tab="lore"><span class="ic">📖</span>设定</div>
+      <div class="tab" data-tab="outline"><span class="ic">🌳</span>大纲</div>
       <div data-page-node-id="KpLbve5Ey4DLIJl4LB2sf9" class="tab" data-tab="models"><span data-page-node-id="ATGg5SjOmSjSCOkZwCzFFh" class="ic"><!--pnid:VB7YUa9RYfJXieqLTC08NL-->🔌</span><!--pnid:R8fkgXkaXGY24GHr53aIB5-->模型</div>
       <div data-page-node-id="dK5OmBGZM2EQe1UjHZEWNk" class="tab" data-tab="drafts"><span data-page-node-id="FyGjvrKjmv7VS4AIZO134h" class="ic"><!--pnid:d88tmlzJOE4MMplpZonhaV-->🗂️</span><!--pnid:31gc5741mkqEu24OhSdeEU-->草稿箱</div>
       <div data-page-node-id="akVTOydT2PA7xvCu56mBb0" class="tab" data-tab="settings"><span data-page-node-id="FW5cVZ2DL0lEjuMhOGIEEL" class="ic"><!--pnid:JttPnokJ1lurOGI0Ve4ezi-->⚙️</span><!--pnid:IoEtaG1m1wgCOUM32I6yjw-->设置</div>
@@ -503,6 +572,7 @@ const Store = (() => {
       text = (text || '').trim();
       if (!text) return;
       const arr = get(K.reqHistory, []);
+      if (arr[0] && arr[0].text === text) return arr; // 连续相同（如反复续写同批要求）不去重追加，避免刷屏
       const nid = Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
       arr.unshift({ id: nid, text, ts: Date.now() });
       if (arr.length > 100) arr.length = 100;
@@ -611,10 +681,33 @@ const GitHubSync = (() => {
     if (sha) body.sha = sha;
     try {
       const r = await pushOnce(c, body);
-      if (!r.ok) { const t = await r.text().catch(() => ''); return { ok:false, msg:'上传失败 HTTP ' + r.status + ' ' + t.slice(0,120) }; }
+      if (!r.ok) {
+        const t = await r.text().catch(() => '');
+        // 409 = sha 冲突（远端被其他设备更新过）：重新取最新 sha 后重试一次，避免静默失败导致远端滞留旧数据
+        if (r.status === 409) {
+          try { const m = await apiGetFile(c); if (m) sha = m.sha; } catch (e) {}
+          if (sha) { body.sha = sha; const r2 = await pushOnce(c, body); if (!r2.ok) return { ok:false, msg:'上传失败 HTTP ' + r2.status + ' ' + (await r2.text().catch(() => '')).slice(0,120) }; const j2 = await r2.json(); _lastSha = j2.content ? j2.content.sha : null; return { ok:true, sha:_lastSha }; }
+        }
+        return { ok:false, msg:'上传失败 HTTP ' + r.status + ' ' + t.slice(0,120) };
+      }
       const j = await r.json(); _lastSha = j.content ? j.content.sha : null;
       return { ok:true, sha:_lastSha };
     } catch (e) { return { ok:false, msg:'上传异常：' + e.message }; }
+  }
+  // 一键发布：把 App 自身（单文件 HTML）推到公开仓库（如 novel-web），用于部署 GitHub Pages
+  async function publish(opts) {
+    const c = { owner: opts.owner, repo: opts.repo, branch: opts.branch || 'main', path: opts.path || 'index.html', token: opts.token };
+    if (!c.owner || !c.repo || !c.token) return { ok:false, msg:'缺少用户名 / 仓库 / PAT' };
+    let sha = null;
+    try { const m = await apiGetFile(c); if (m) sha = m.sha; } catch (e) {}
+    const body = { message: opts.message || ('publish ' + c.path + ' ' + new Date().toISOString()), content: b64enc(opts.text) };
+    if (sha) body.sha = sha;
+    let r = await pushOnce(c, body);
+    if (r.status === 409) {
+      try { const m = await apiGetFile(c); if (m) { body.sha = m.sha; r = await pushOnce(c, body); } } catch (e) {}
+    }
+    if (!r.ok) { const t = await r.text().catch(() => ''); return { ok:false, msg:'发布失败 HTTP ' + r.status + ' ' + t.slice(0,160) }; }
+    return { ok:true };
   }
   async function pullMerge() {
     try {
@@ -663,7 +756,7 @@ const GitHubSync = (() => {
       return r;
     } catch (e) { status('自动拉取失败：' + e.message); }
   }
-  return { getCfg, setCfg, configured, test, pullRaw, pullMerge, pushCurrent, initAuto, autoPull, setAfterPull, status };
+  return { getCfg, setCfg, configured, test, pullRaw, pullMerge, pushCurrent, publish, initAuto, autoPull, setAfterPull, status };
 })();
 // ===== end GitHub 多设备同步 =====
 </script>
@@ -849,7 +942,7 @@ const Prompt = (() => {
     third: '保持第三人称叙事视角。'
   };
 
-  function buildMessages({ context, styleContext, lastTitle, targetChars, totalChars, styleStrength, keepPOV, endHook, extraNote, priorText, chunkNo, totalChunks, requirements, feedback }) {
+  function buildMessages({ context, styleContext, lastTitle, targetChars, totalChars, styleStrength, keepPOV, endHook, extraNote, priorText, chunkNo, totalChunks, requirements, feedback, loreContext }) {
     const reqBlock = (requirements && requirements.length)
       ? '【剧情要求（以下是本章必须真实发生的核心情节，不是可选点缀，也不是氛围暗示）】\n'
         + requirements.map((r, i) => `${i + 1}. ${r}`).join('\n') + '\n'
@@ -866,6 +959,9 @@ const Prompt = (() => {
     const styleBlock = hasStyle
       ? '【风格参考范本（仅借鉴其文风 / 笔调 / 句式 / 视角，绝不借用其内容、人物或情节）】\n────────────────\n' + styleContext + '\n────────────────\n\n'
       : '';
+    const loreBlock = (loreContext && loreContext.trim())
+      ? '【设定与人物卡 / 世界观（务必保持人物性格、口头禅、关系、世界观一致，严禁 OOC 或人设崩塌）】\n────────────────\n' + loreContext + '\n────────────────\n\n'
+      : '';
     const taskText = hasStyle
       ? `请基于上方【原作样本】的剧情、人物与世界观，续写「原作样本」的下一章；但**写作风格（叙事视角、语言风格、句式长短、词汇偏好、段落与篇幅节奏）必须严格模仿上方【风格参考范本】的笔调**，做到"用范本的文风写原作的故事"。\n- 内容、人物、世界观、情节全部来自【原作样本】，严禁把【风格参考范本】的任何人物 / 情节 / 设定混入原作。\n- 紧接《${lastTitle}》结尾的情节、情绪与悬念，保证剧情、时间、地点、人物状态与原作无缝衔接。`
       : `请基于以上原文，续写下一章。\n- 紧接《${lastTitle}》结尾的情节、情绪与悬念，保证剧情、时间、地点、人物状态无缝衔接。`;
@@ -874,7 +970,7 @@ const Prompt = (() => {
 ${context}
 ────────────────
 
-${styleBlock}${taskText}
+${styleBlock}${loreBlock}${taskText}
 - 风格模仿强度：${STRENGTH[hasStyle ? 'high' : styleStrength] || STRENGTH.high}${hasStyle ? '（此处"前文 / 原文"特指上方【风格参考范本】的文风）' : ''}
 - 叙事视角约束：${POV[keepPOV] || POV.auto}
 - 不得 OOC，不得改变文风，不得新增与原著冲突的设定，不得写引导语或点评。
@@ -951,6 +1047,8 @@ ${relayReq}直接输出续写正文（自然接在前面之后，不要另起重
     if (name === 'settings') renderSettings();
     if (name === 'drafts') renderDrafts();
     if (name === 'feedback') renderFeedback();
+    if (name === 'lore') renderLore();
+    if (name === 'outline') renderOutline();
   }
 
   /* ---------------- 作品 ---------------- */
@@ -1002,6 +1100,111 @@ ${relayReq}直接输出续写正文（自然接在前面之后，不要另起重
   /* ---------------- 续写 ---------------- */
   function getSelWork() { return state.works.find(w => w.id === $('#selWork').value); }
   function getSelModel() { return state.models.find(m => m.id === $('#selModel').value); }
+  // v19j 设定记忆库：兼容旧作品（无 lore 字段），统一返回标准结构
+  function getLore(w) {
+    if (!w.lore) w.lore = { auto: true, entries: [] };
+    if (!w.lore.entries) w.lore.entries = [];
+    if (typeof w.lore.auto !== 'boolean') w.lore.auto = true;
+    return w.lore;
+  }
+  function reindexChapters(w) {
+    w.chapters.forEach((c, i) => { c.index = i; if (!c.raw) c.raw = (c.title || '') + '\n' + (c.content || ''); });
+    w.text = w.chapters.map(c => (c.title || '') + '\n' + (c.content || '')).join('\n\n');
+    w.updatedAt = Date.now();
+  }
+
+  /* ---------------- 设定 / 世界观记忆库（Lorebook）v19j ---------------- */
+  function renderLore() {
+    const sel = $('#selLoreWork'); if (!sel) return;
+    sel.innerHTML = state.works.length
+      ? state.works.map(w => `<option value="${w.id}">${esc(w.title)}（${w.chapters.length}章）</option>`).join('')
+      : '<option value="">（请先到「作品」页上传小说）</option>';
+    const ed = $('#loreEditor');
+    if (!state.works.length) { ed.style.display = 'none'; return; }
+    if (!sel.value || !state.works.some(w => w.id === sel.value)) sel.value = state.works[0].id;
+    const w = state.works.find(x => x.id === sel.value);
+    const lore = getLore(w);
+    $('#loreAuto').checked = lore.auto;
+    ed.style.display = '';
+    renderLoreList(w);
+  }
+  function renderLoreList(w) {
+    const lore = getLore(w);
+    $('#loreCount').textContent = lore.entries.length;
+    const box = $('#loreList');
+    const TYPE = { char: '角色', place: '地点', faction: '势力' };
+    if (!lore.entries.length) { box.innerHTML = '<p class="hint">还没有设定条目，在上方添加第一条吧。</p>'; return; }
+    box.innerHTML = lore.entries.map((e, i) => `<div class="card" style="margin-top:8px">
+      <div class="row spread"><b>${esc(e.name)}</b><span class="badge">${TYPE[e.type] || '设定'}</span></div>
+      ${e.traits ? `<div class="meta">性格/设定：${esc(e.traits)}</div>` : ''}
+      ${e.catchphrase ? `<div class="meta">口头禅：${esc(e.catchphrase)}</div>` : ''}
+      ${e.relations ? `<div class="meta">关系：${esc(e.relations)}</div>` : ''}
+      ${e.note ? `<div class="meta">备注：${esc(e.note)}</div>` : ''}
+      <div class="row wrap" style="margin-top:6px">
+        <label style="display:flex;align-items:center;gap:6px"><input type="checkbox" data-lore-inject="${i}" ${e.inject !== false ? 'checked' : ''}> 续写时注入</label>
+        <button class="btn sm" data-lore-edit="${i}">编辑</button>
+        <button class="btn sm danger" data-lore-del="${i}">删除</button>
+      </div></div>`).join('');
+  }
+  function openLoreEdit(i) {
+    const w = state.works.find(x => x.id === $('#selLoreWork').value); if (!w) return;
+    const lore = getLore(w); const e = lore.entries[i]; if (!e) return;
+    showModal(`<h3>编辑设定条目</h3>
+      <label class="field"><span class="lbl">类型</span><select id="leType">${['char', 'place', 'faction'].map(t => `<option value="${t}" ${e.type === t ? 'selected' : ''}>${t === 'char' ? '角色' : (t === 'place' ? '地点' : '势力')}</option>`).join('')}</select></label>
+      <label class="field"><span class="lbl">名称</span><input id="leName" value="${esc(e.name)}"></label>
+      <label class="field"><span class="lbl">性格 / 设定</span><input id="leTraits" value="${esc(e.traits || '')}"></label>
+      <label class="field"><span class="lbl">口头禅</span><input id="leCatch" value="${esc(e.catchphrase || '')}"></label>
+      <label class="field"><span class="lbl">关系</span><input id="leRel" value="${esc(e.relations || '')}"></label>
+      <label class="field"><span class="lbl">备注 / 背景</span><textarea id="leNote">${esc(e.note || '')}</textarea></label>
+      <label class="field" style="display:flex;align-items:center;gap:6px"><input type="checkbox" id="leInject" ${e.inject !== false ? 'checked' : ''}> 续写时注入</label>
+      <div class="row" style="margin-top:8px"><button class="btn primary" id="leSave">保存</button><button class="btn ghost" id="leClose">取消</button></div>`);
+    $('#leClose').addEventListener('click', hideModal);
+    $('#leSave').addEventListener('click', () => {
+      e.type = $('#leType').value; e.name = $('#leName').value.trim();
+      e.traits = $('#leTraits').value.trim(); e.catchphrase = $('#leCatch').value.trim();
+      e.relations = $('#leRel').value.trim(); e.note = $('#leNote').value.trim();
+      e.inject = $('#leInject').checked;
+      if (!e.name) { toast('名称不能为空'); return; }
+      persistWorks(); renderLoreList(w); hideModal();
+    });
+  }
+
+  /* ---------------- 大纲 / 章节树 v19j ---------------- */
+  function renderOutline() {
+    const sel = $('#selOutlineWork'); if (!sel) return;
+    sel.innerHTML = state.works.length
+      ? state.works.map(w => `<option value="${w.id}">${esc(w.title)}（${w.chapters.length}章）</option>`).join('')
+      : '<option value="">（请先到「作品」页上传小说）</option>';
+    const ed = $('#outlineEditor');
+    if (!state.works.length) { ed.style.display = 'none'; return; }
+    if (!sel.value || !state.works.some(w => w.id === sel.value)) sel.value = state.works[0].id;
+    ed.style.display = '';
+    renderOutlineList();
+  }
+  function renderOutlineList() {
+    const sel = $('#selOutlineWork'); const w = state.works.find(x => x.id === sel.value); if (!w) return;
+    $('#outlineMeta').textContent = '共 ' + w.chapters.length + ' 章 · 约 ' + Novel.countWords(w.text) + ' 字';
+    const box = $('#outlineList');
+    box.innerHTML = w.chapters.map((c, i) => `<div class="chapter-row" draggable="true" data-ch="${i}">
+      <span class="drag" draggable="false">⠿</span>
+      <span class="ch-idx">${i + 1}</span>
+      <div class="ch-main">
+        <input class="ch-title" data-ti="${i}" value="${esc(c.title)}" placeholder="章节标题">
+        <input class="ch-syn" data-si="${i}" value="${esc(c.synopsis || '')}" placeholder="一句话梗概（卡点 / 剧情大纲，可选）">
+      </div>
+      <div class="ch-wc">${Novel.countWords(c.content)}字</div>
+      <div class="row">
+        <button class="btn sm" data-up="${i}">▲</button>
+        <button class="btn sm" data-down="${i}">▼</button>
+        <button class="btn sm danger" data-del="${i}">删</button>
+      </div></div>`).join('');
+  }
+  function outlineMove(w, from, to) {
+    if (to < 0 || to >= w.chapters.length || from === to) return;
+    const [it] = w.chapters.splice(from, 1);
+    w.chapters.splice(to, 0, it);
+    reindexChapters(w); persistWorks(); renderOutlineList();
+  }
   function fillChapterSelect(w) {
     const sel = $('#selChapter');
     sel.innerHTML = w.chapters.map((c, i) => `<option value="${i}">${esc(c.title)}（${Novel.countWords(c.content)}字）</option>`).join('');
@@ -1047,6 +1250,12 @@ ${relayReq}直接输出续写正文（自然接在前面之后，不要另起重
     const pct = Math.min(100, Math.round(n / chars * 100));
     $('#progBar').style.width = pct + '%';
   }
+  function updateProgressWc(wc, chars) {
+    // 增量版：直接接收「已累计字数(去空白)」，避免每 token 对整段大字符串做全量扫描（长文卡顿根因之一）
+    const n = Math.max(0, (wc || 0) - (state.genBaseLen || 0));
+    const pct = Math.min(100, Math.round(n / chars * 100));
+    const bar = $('#progBar'); if (bar) bar.style.width = pct + '%';
+  }
   function setGenButtons(mode) {
     $('#btnWrite').disabled = mode === 'writing';
     if ($('#btnContinue')) $('#btnContinue').disabled = mode === 'writing';
@@ -1054,6 +1263,7 @@ ${relayReq}直接输出续写正文（自然接在前面之后，不要另起重
     if ($('#btnAiCritique')) $('#btnAiCritique').disabled = mode !== 'done';
     $('#btnStop').disabled = mode !== 'writing';
     $('#btnAdopt').disabled = mode !== 'done';
+    if ($('#btnSaveDraft')) $('#btnSaveDraft').disabled = mode === 'writing';
     $('#btnSaveDocx').disabled = !state.currentWorkId;
     $('#btnExportAll').disabled = !state.currentWorkId;
     $('#btnRedo').disabled = mode !== 'done';
@@ -1147,11 +1357,36 @@ ${relayReq}直接输出续写正文（自然接在前面之后，不要另起重
       if (swB && swB.chapters.length) styleContext = Novel.buildContext(swB.chapters, swB.chapters.length - 1, sample);
     }
     const extra = $('#inExtra').value.trim();
+    // v19j 设定记忆库（Lorebook）：续写时把勾选的设定条目注入上下文，维持人物/世界观一致
+    let loreContext = '';
+    const lw = getSelWork();
+    if (lw) {
+      const lo = getLore(lw);
+      if (lo.auto) {
+        const ents = (lo.entries || []).filter(e => e.inject !== false && e.name && e.name.trim());
+        if (ents.length) {
+          loreContext = ents.map(e => {
+            const tag = e.type === 'place' ? '地点/势力' : (e.type === 'faction' ? '势力' : '角色');
+            let s = '【' + tag + '】' + e.name.trim();
+            if (e.traits && e.traits.trim()) s += '\n- 性格/设定：' + e.traits.trim();
+            if (e.catchphrase && e.catchphrase.trim()) s += '\n- 口头禅：' + e.catchphrase.trim();
+            if (e.relations && e.relations.trim()) s += '\n- 与其他人关系：' + e.relations.trim();
+            if (e.note && e.note.trim()) s += '\n- 备注：' + e.note.trim();
+            return s;
+          }).join('\n');
+        }
+      }
+    }
     const reqText = $('#inReq').value.trim();
     const reqList = reqText ? reqText.split(/\n+/).map(s => s.trim()).filter(Boolean) : [];
     if (reqText) { Store.addReqHistory(reqText); renderReqHistory(); }
-    if (reqList.length) {
-      const need = reqList.length * 1000;   // 每条剧情要求至少约 1000 字才写得下"具体场面"
+    // v19i 全书级要求（如"分8-10个章节""共30章大纲"）：单次续写只写"下一章"，一次生成里永远无法体现，
+    // 参与逐条核对必然误报 ❌ 并空转追加浪费 token。识别出来：仍随要求注入生成提示，但不参与本次核对/补全。
+    const globalReqs = reqList.filter(isGlobalReq);
+    const checkReqs = reqList.filter(r => !isGlobalReq(r));
+    lastGlobalReqs = globalReqs;
+    if (checkReqs.length) {
+      const need = checkReqs.length * 1000;   // 每条剧情要求至少约 1000 字才写得下"具体场面"（全书级要求不算，它不是场面）
       if (need > chars) { chars = need; toast(`剧情要求较多，已把目标篇幅提到约 ${chars} 字，确保每条都写充分`); }
     }
     const fbList = Store.getFeedbacks().filter(f => f.use);
@@ -1186,21 +1421,31 @@ ${relayReq}直接输出续写正文（自然接在前面之后，不要另起重
         const messages = Prompt.buildMessages({
           context, styleContext, lastTitle: chap.title, targetChars: thisTarget, totalChars: chars,
           styleStrength: strength, keepPOV: pov, endHook: hook && isLast, extraNote: extra,
-          priorText: tail, chunkNo: c, totalChunks, requirements: reqList, feedback: fbList
+          priorText: tail, chunkNo: c, totalChunks, requirements: reqList, feedback: fbList, loreContext
         });
-        let ok = false, attempt = 0;
+        let ok = false, attempt = 0, lastUi = 0;
+        state._genWc = (acc.replace(/\s/g, '')).length; // 已累计字数(去空白)，供进度条增量累加
+        out.value = acc;                                 // 段起始先把已有内容铺好，避免每 token 重写整段大字符串
         while (attempt < 3 && !ok) {
           attempt++;
+          let prevFullLen = 0; // 本段内增量游标：每次只追加快照里新增的小段，复杂度 O(delta) 而非 O(acc)
           try {
             const text = await streamChunk(messages, maxTokens, temp, m, (d, full) => {
-              out.value = acc + full; out.scrollTop = out.scrollHeight; updateProgress(acc + full, chars);
+              const added = full.slice(prevFullLen);
+              if (added) { state._genWc += added.replace(/\s/g, '').length; prevFullLen = full.length; }
+              updateProgressWc(state._genWc, chars);     // 进度条每次都更新（只写宽度，极廉价）
+              const now = Date.now();
+              if (now - lastUi >= 350) {                 // 文本框与滚动条节流(约 3 次/秒)整段刷新，根治长文卡顿
+                lastUi = now;
+                out.value = acc + full; out.scrollTop = out.scrollHeight;
+              }
             }, state.abort.signal);
             if (!text || !text.replace(/\s/g, '')) {
               // 空返回：不累加、不算成功，避免原地死循环刷接口
               lastErr = '模型返回空内容';
               if (attempt < 3) { toast(`第 ${c}/${totalChunks} 段返回为空，重试中(${attempt}/3)…`); await sleep(1200); }
             } else {
-              acc = acc + text; ok = true; updateProgress(acc, chars);
+              acc = acc + text; ok = true; out.value = acc; updateProgress(acc, chars);
             }
           } catch (e) {
             if (e.name === 'AbortError' && state.abort && state.abort.signal.aborted) throw e; // 用户主动停止
@@ -1215,11 +1460,11 @@ ${relayReq}直接输出续写正文（自然接在前面之后，不要另起重
       setGenButtons('done');
       if (state.lastGen) state.lastGen.text = out.value;
       saveGenToDraft();
-      if (reqList.length) {
+      if (checkReqs.length) {
         let guard = 0, finalResults = null;
         while (guard < 3) {
           let results = null;
-          try { results = await reviewRequirements(m, out.value, reqList); } catch (e) {}
+          try { results = await reviewRequirements(m, out.value, checkReqs); } catch (e) {}
           if (!results) { toast('剧情要求核对暂未完成（网络或模型波动），可点结果卡片里的「重新核对」再试'); break; }
           finalResults = results;
           const unmet = results.filter(r => !r.met);
@@ -1258,7 +1503,11 @@ ${relayReq}直接输出续写正文（自然接在前面之后，不要另起重
           ? `第 ${failChunk} 段连续重连失败（${lastErr || '接口异常'}）。`
           : '本次未写满目标字数。')
           + `已完成内容已保留，已把目标字数改为剩余约 ${remaining} 字——点「🔁 接着上文续写」即可接着写完（原内容不动），别点「重新生成」（那会清空重来）`);
-      } else if (!reqList.length) toast('续写完成，可编辑后「采用」');
+      } else if (!checkReqs.length) {
+        toast(globalReqs.length
+          ? `续写完成。本次要求均为全书级目标（如「${globalReqs[0]}」），单次续写不核对——这类目标靠多次续写累积达成，已注入生成提示`
+          : '续写完成，可编辑后「采用」');
+      }
     } catch (e) {
       if (e.name === 'AbortError') { toast('已停止，已完成内容已保留在文本框'); setGenButtons('done'); saveGenToDraft(); }
       else { out.value = (out.value || '') + '\n【生成失败】' + e.message; setGenButtons('done'); toast('生成失败：' + e.message); }
@@ -1271,13 +1520,30 @@ ${relayReq}直接输出续写正文（自然接在前面之后，不要另起重
     const base = out.value || '';
     if (!base.replace(/\s/g, '')) { toast('文本框为空，没有可接着写的内容——请先点「开始续写」，或把已有正文粘进文本框'); return; }
     if (!getSelWork()) { toast('请先在上方选择作品（用于锚定文风与人物，续写才不会跑偏）'); return; }
-    toast('将在当前内容末尾接着续写，原有内容全部保留');
-    await doWrite(base);
+    // 弹出"本次要新增的续写要求"窗口（预填当前剧情要求框内容，便于在原有基础上追加），避免用户找不到顶部输入框
+    const cur = ($('#inReq').value || '').trim();
+    showModal(
+      '<h3>🔁 接着上文续写</h3>' +
+      '<p class="hint">会在你当前文本框内容<b>末尾</b>接着写，<b>原有内容全部保留</b>。请填写这次要新增的「剧情要求」（每行一条，可选；拆章/大纲类全书级要求只注入提示、不参与单次核对）：</p>' +
+      '<textarea id="contReq" style="min-height:160px;width:100%;box-sizing:border-box" placeholder="每行一条具体事件（谁+发生什么），例如：&#10;主角在密道发现身世秘密&#10;反派当众揭穿配角的背叛">' + esc(cur) + '</textarea>' +
+      '<div class="row" style="margin-top:10px">' +
+      '<button class="btn primary" id="contGo">开始接着写</button>' +
+      '<button class="btn ghost" id="contCancel">取消</button></div>'
+    );
+    $('#contCancel').addEventListener('click', hideModal);
+    $('#contGo').addEventListener('click', async () => {
+      const txt = ($('#contReq').value || '').trim();
+      $('#inReq').value = txt || cur; // 写回剧情要求框（空则保留原有要求），doWrite 据此核对/补全
+      hideModal();
+      toast('将在当前内容末尾接着续写，原有内容全部保留');
+      await doWrite(base);
+    });
   }
 
   /* ---------------- 剧情要求自检（生成后由模型逐条核对） ---------------- */
   let lastReviewCtx = null; // {m,text,reqs} 供「重新核对」复用
   let lastReqCheckResults = []; // 最近一次核对结果，供「沉淀为经验」引用
+  let lastGlobalReqs = []; // v19i 全书级要求（拆章/大纲类），单次续写不参与核对，仅供结果卡片展示说明
   // 超长正文分段核对：每段独立调用模型判断，再按条合并——
   // 正向要求（剧情要发生）：任一段体现即算已体现（OR）；约束类要求（不要出现某内容）：任一段违反即算未满足（AND）
   async function reviewLongText(m, text, reqs) {
@@ -1407,6 +1673,12 @@ ${relayReq}直接输出续写正文（自然接在前面之后，不要另起重
   function isNegativeReq(s) {
     return /不(要|得|能|可|应|许|准|宜)|别(出|写|有|让|出现)|禁止|避免|切忌|去掉|移除|删除|无(关|其他|需)|不要有|不能(有|出现)|不出现|不涉及|禁止出现|不得出现|不得有/.test(s);
   }
+  // v19i 全书级/结构类要求：续写页一次只产出"下一章"，这类要求（如"分8-10个章节""共30章大纲"）
+  // 在一次生成里不可能体现，参与逐条核对必然误报 ❌ 且触发无意义的追加补全。识别后只注入生成提示，不参与本次核对。
+  function isGlobalReq(s) {
+    if (/^\s*【?(全书|全文|总(体|纲|目标|计)|大纲|整体|章节规划|章节结构|结构|规划)】?/.test(s)) return true;
+    return /分(成|为)?\s*\d+\s*[-~～—–到至]?\s*\d*\s*个?\s*(章节|章)|共\s*\d+\s*(个\s*)?(章节|章)|总共\s*\d+\s*(个\s*)?(章节|章)|\d+\s*个?\s*(章节|章)\s*(的)?\s*(大纲|规划|结构|拆分)|拆\s*(成|分?为)\s*\d+|章节(规划|结构|大纲)/.test(s);
+  }
   function mapReqResults(arr, reqs) {
     return reqs.map((r, i) => {
       const found = arr.find(x => x && (x.idx === i + 1 || (typeof x.idx === 'string' && x.idx === String(i + 1)) || x.req === r));
@@ -1422,9 +1694,11 @@ ${relayReq}直接输出续写正文（自然接在前面之后，不要另起重
     const negNo = results.filter(r => !r.met && r.type === 'neg').length;
     const posNo = results.filter(r => !r.met && r.type === 'pos').length;
     const negHint = negNo ? `<div class="hint" style="margin-top:8px;color:#b45309">⚠️ 有 ${negNo} 条约束类要求未满足（如"不要出现无关人物"）。这类约束无法靠"追加"自动修正，且整篇重写较费 token——建议直接在上方文本框手动删去违反处；也可点「沉淀为经验」，下次生成会重点规避。</div>` : '';
+    const gBanner = (lastGlobalReqs && lastGlobalReqs.length)
+      ? `<div class="hint" style="margin-top:8px;color:#1d4ed8">ⓘ 另有 ${lastGlobalReqs.length} 条全书级要求（如「${esc(lastGlobalReqs[0])}」）未参与本次核对：续写一次只写"下一章"，拆章/大纲类目标无法在一次生成里体现，已随剧情要求注入生成提示，靠后续多次续写逐步达成，不会误报、也不会触发追加补全。</div>` : '';
     const fixBtn = posNo ? `<button class="btn sm primary" id="btnAppendPos">✍️ 追加补全 ${posNo} 条剧情（不删原文）</button>` : '';
     const sinkAll = noCnt ? `<div class="row wrap" style="margin-top:8px">${fixBtn}<button class="btn sm" id="btnSinkAll">一键加入纠错记忆</button>${posNo ? '<span class="meta">补全段会紧接正文末尾续写，原稿保留</span>' : ''}</div>` : '';
-    box.innerHTML = `<div class="req-title">剧情要求核对（${metCount}/${reqs.length} 已体现）</div>${items}${negHint}${sinkAll}<div style="margin-top:8px"><button class="btn" id="btnRecheck">重新核对</button></div><div class="hint">模型自检结果，仅供参考。剧情类未体现优先点「追加补全」（往末尾续写、不删原文）；约束类被违反需手动在文本框编辑，或重新生成整章（费 token）。注意「重新生成」会清空当前内容。</div>`;
+    box.innerHTML = `<div class="req-title">剧情要求核对（${metCount}/${reqs.length} 已体现）</div>${items}${gBanner}${negHint}${sinkAll}<div style="margin-top:8px"><button class="btn" id="btnRecheck">重新核对</button></div><div class="hint">模型自检结果，仅供参考。剧情类未体现优先点「追加补全」（往末尾续写、不删原文）；约束类被违反需手动在文本框编辑，或重新生成整章（费 token）。注意「重新生成」会清空当前内容。</div>`;
     bindRecheck(box);
   }
   async function appendUnmetManually(btn) {
@@ -1452,7 +1726,7 @@ ${relayReq}直接输出续写正文（自然接在前面之后，不要另起重
       btn.disabled = false; btn.textContent = oldLabel;
     }
   }
-  function saveGenToDraft() {
+  function saveGenToDraft(source) {
     // 每次生成续写结果后自动存入草稿箱（无论用户是否点导出/采用），避免漏存
     try {
       const w = getSelWork();
@@ -1460,9 +1734,18 @@ ${relayReq}直接输出续写正文（自然接在前面之后，不要另起重
       if (!out.replace(/\s/g, '')) return;
       if (!w) return;
       const title = ($('#inNewTitle').value.trim()) || ((w.title || '小说') + ' 续写');
-      Store.addDraft({ title: title, workTitle: w.title || '小说', source: 'gen', content: out });
+      Store.addDraft({ title: title, workTitle: w.title || '小说', source: source || 'gen', content: out });
       renderDrafts();
     } catch (e) {}
+  }
+  function saveCurrentToDraft() {
+    // 显式把当前文本框内容存入草稿箱：生成虽已自动存，但手动在文本框里改/调试的内容需手动存，避免丢失
+    const out = ($('#writeOutput').value || '').trim();
+    if (!out) { toast('文本框为空，没有可保存的内容'); return; }
+    const w = getSelWork();
+    const title = ($('#inNewTitle').value.trim()) || ((w && w.title ? w.title : '小说') + ' 续写');
+    Store.addDraft({ title: title, workTitle: w ? (w.title || '小说') : '未选作品', source: 'gen', content: out });
+    renderDrafts(); toast('已保存到草稿箱');
   }
   function adopt() {
     const g = state.lastGen;
@@ -1497,6 +1780,7 @@ ${relayReq}直接输出续写正文（自然接在前面之后，不要另起重
     const w = state.works.find(x => x.id === state.currentWorkId);
     const out = ($('#writeOutput').value || '').trim();
     if (!out) { toast('请先生成或采用续写内容，再点「导出续写」'); return; }
+    saveGenToDraft('export'); // 导出时也确保落盘到草稿箱（弹窗提示"已自动存入草稿箱"需真实生效），标记为"导出"来源
     const title = ($('#inNewTitle').value.trim()) || '续写片段';
     const fn = title.replace(/[\\/:*?"<>|]/g, '_') + '.txt';
     // 续写结果在生成时已自动存入草稿箱，这里只负责导出为 txt
@@ -1550,7 +1834,7 @@ ${relayReq}直接输出续写正文（自然接在前面之后，不要另起重
     const box = $('#draftsList');
     const drafts = Store.getDrafts();
     if (!drafts.length) {
-      box.innerHTML = `<div class="empty"><div class="big">🗂️</div><p>还没有草稿</p><p class="hint">每次生成续写结果后会自动存到这里；也可在「续写」页点「导出 TXT」或「采用并追加」</p></div>`;
+      box.innerHTML = `<div class="empty"><div class="big">🗂️</div><p>还没有草稿</p><p class="hint">每次生成续写结果后会自动存到这里；也会在「续写」页点「💾 存草稿」或「导出续写」时保存。手动在文本框里改/调试的内容，请点「💾 存草稿」手动落盘，避免丢失。</p></div>`;
       return;
     }
     box.innerHTML = drafts.map(d => {
@@ -1677,7 +1961,7 @@ ${relayReq}直接输出续写正文（自然接在前面之后，不要另起重
     const out = ($('#writeOutput').value || '').trim();
     if (!out) { toast('请先生成续写内容'); return; }
     const m = getSelModel(); if (!m) { toast('请先在「模型」页配置并选择模型'); return; }
-    const reqs = ($('#inReq').value || '').trim().split(/\n+/).map(s => s.trim()).filter(Boolean);
+    const reqs = ($('#inReq').value || '').trim().split(/\n+/).map(s => s.trim()).filter(Boolean).filter(r => !isGlobalReq(r)); // 全书级要求不参与自评（单次续写无从体现）
     const sys = '你是严格的写作质检员。阅读【本次续写】，对照【作者剧情要求】（如有），找出续写中"要求没做到位 / 文风不符 / 明显可改进"的点。只输出一个 JSON 数组（不要代码块、不要其他文字），每个元素是一条写作规则，30字以内、可执行。\n重要：规则必须是通用的写作方法论，不要包含具体人名、地名、专有名词，用「主角 / 反派 / 配角 / 某角色」等通用称谓代替；例如"反派的黑化必须真实发生，不要只提及"。若一切合格可输出空数组 []。';
     const user = '【作者剧情要求】\n' + (reqs.length ? reqs.map((r, i) => `${i + 1}. ${r}`).join('\n') : '（无，仅做文风与质量自检）') + '\n\n【本次续写】\n' + out + '\n\n只输出 JSON 数组。';
     toast('AI 正在扫描续写、找可改进点…');
@@ -1820,23 +2104,38 @@ ${relayReq}直接输出续写正文（自然接在前面之后，不要另起重
     return { build };
   })();
 
-  // 导出/下载 .txt：桌面端用传统 a.download；移动端优先调系统分享（可“存储到文件”），避免 iOS/Android 把 blob 当网页打开
+  // 导出/下载 .txt：三级兜底——① 移动端优先系统分享(可"存储到文件")；② 桌面端传统 a.download；③ 任一失败/被拦截则自动复制全文。
+  // 彻底解决"手机/微信内置浏览器/沙箱 iframe 下点下载没反应、像报错"的问题。
   async function saveTextFile(filename, text) {
     const blob = new Blob(['\ufeff' + text], { type: 'text/plain;charset=utf-8' });
-    if (navigator.share) {
-      const file = new File([blob], filename, { type: 'text/plain;charset=utf-8' });
-      let canShareFile = !navigator.canShare;
-      if (navigator.canShare) { try { canShareFile = navigator.canShare({ files: [file] }); } catch (e) { canShareFile = false; } }
-      if (canShareFile) {
-        try { await navigator.share({ files: [file], title: filename }); toast('已调用系统分享，可「存储到文件」或发给微信/备忘录'); return; }
-        catch (e) { if (e && e.name === 'AbortError') return; }
+    const doCopy = async () => {
+      try {
+        if (navigator.clipboard && window.isSecureContext) { await navigator.clipboard.writeText(text); toast('已自动复制全文，去备忘录/文件 App 长按粘贴保存'); }
+        else { fallbackCopy(text); } // fallbackCopy 自身 Toast
+      } catch (e) { toast('下载被拦截，请在弹窗里长按文本框「全选→复制」后保存'); }
+    };
+    try {
+      if (navigator.share) {
+        const file = new File([blob], filename, { type: 'text/plain;charset=utf-8' });
+        let canShareFile = !navigator.canShare;
+        if (navigator.canShare) { try { canShareFile = navigator.canShare({ files: [file] }); } catch (e) { canShareFile = false; } }
+        if (canShareFile) {
+          try { await navigator.share({ files: [file], title: filename }); toast('已调用系统分享，可「存储到文件」或发给微信/备忘录'); return; }
+          catch (e) { if (e && e.name === 'AbortError') return; } // 用户取消分享，不报错
+        }
+        // 有 share 但不支持分享文件（常见于微信内置浏览器等）：移动端 a.download 易把 blob 当网页打开，直接复制全文兜底
+        await doCopy(); return;
       }
-      // 分享不可用（或环境不支持分享文件）：移动端 a.download 会跳转成网页，故改用复制引导
-      toast('当前环境无法直接下载，已为你备好文本，点「复制全部」粘贴到备忘录/文件 App');
-      return;
+      // 桌面端 / 无 share：传统 a.download 下载
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href = url; a.download = filename;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => { try { URL.revokeObjectURL(url); } catch (e) {} }, 1000);
+      toast('已开始下载：' + filename);
+    } catch (e) {
+      // 下载被浏览器/环境拦截（沙箱 iframe、file://、部分移动端）：自动复制全文兜底
+      await doCopy();
     }
-    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = filename; document.body.appendChild(a); a.click(); a.remove();
-    toast('已开始下载：' + filename);
   }
 
   /* ---------------- 模型 ---------------- */
@@ -1905,6 +2204,11 @@ ${relayReq}直接输出续写正文（自然接在前面之后，不要另起重
     $('#ghToken').value = gc.token;
     $('#ghAutoBtn').textContent = '自动同步：' + (gc.auto ? '开' : '关');
     $('#ghStatus').textContent = GitHubSync.configured() ? '已配置，可点「测试连接」。' : '未配置（填写上方并点保存设置）。';
+    // 发布配置回填
+    let pub = {}; try { pub = JSON.parse(localStorage.getItem('nw_pub') || '{}'); } catch (e) {}
+    $('#pubRepo').value = pub.repo || 'novel-web';
+    $('#pubBranch').value = pub.branch || 'main';
+    $('#pubPath').value = pub.path || 'index.html';
   }
   function saveSettingsFromUI() {
     const s = state.settings;
@@ -1980,6 +2284,76 @@ ${relayReq}直接输出续写正文（自然接在前面之后，不要另起重
   function bind() {
     $$('.tabbar .tab').forEach(t => t.addEventListener('click', () => switchTab(t.dataset.tab)));
 
+    // 设定 / 世界观记忆库（Lorebook）v19j
+    $('#selLoreWork').addEventListener('change', renderLore);
+    $('#loreAuto').addEventListener('change', () => {
+      const w = state.works.find(x => x.id === $('#selLoreWork').value); if (!w) return;
+      getLore(w).auto = $('#loreAuto').checked; persistWorks(); toast('自动注入：' + ($('#loreAuto').checked ? '开' : '关'));
+    });
+    $('#loreAdd').addEventListener('click', () => {
+      const w = state.works.find(x => x.id === $('#selLoreWork').value); if (!w) return;
+      const name = $('#loreName').value.trim();
+      if (!name) { toast('请填写名称'); return; }
+      const lore = getLore(w);
+      lore.entries.push({
+        id: uid(), type: $('#loreType').value, name,
+        traits: $('#loreTraits').value.trim(), catchphrase: $('#loreCatch').value.trim(),
+        relations: $('#loreRel').value.trim(), note: $('#loreNote').value.trim(),
+        inject: $('#loreInject').checked
+      });
+      persistWorks(); renderLoreList(w);
+      $('#loreName').value = ''; $('#loreTraits').value = ''; $('#loreCatch').value = ''; $('#loreRel').value = ''; $('#loreNote').value = '';
+      toast('已添加设定条目');
+    });
+    $('#loreList').addEventListener('change', e => {
+      const cb = e.target.closest('[data-lore-inject]'); if (!cb) return;
+      const w = state.works.find(x => x.id === $('#selLoreWork').value); if (!w) return;
+      const i = +cb.dataset.loreInject; getLore(w).entries[i].inject = cb.checked; persistWorks();
+    });
+    $('#loreList').addEventListener('click', e => {
+      const ed = e.target.closest('[data-lore-edit]'); if (ed) { openLoreEdit(+ed.dataset.loreEdit); return; }
+      const dl = e.target.closest('[data-lore-del]'); if (dl) {
+        const w = state.works.find(x => x.id === $('#selLoreWork').value); if (!w) return;
+        if (confirm('确定删除该设定条目？')) { getLore(w).entries.splice(+dl.dataset.loreDel, 1); persistWorks(); renderLoreList(w); }
+      }
+    });
+
+    // 大纲 / 章节树 v19j
+    $('#selOutlineWork').addEventListener('change', renderOutline);
+    $('#outlineAdd').addEventListener('click', () => {
+      const w = state.works.find(x => x.id === $('#selOutlineWork').value); if (!w) return;
+      const n = w.chapters.length + 1;
+      w.chapters.push({ index: w.chapters.length, title: '第' + n + '章', content: '', raw: '第' + n + '章', synopsis: '' });
+      reindexChapters(w); persistWorks(); renderOutlineList(); toast('已新增规划章节（可命名与写梗概）');
+    });
+    $('#outlineList').addEventListener('input', e => {
+      const w = state.works.find(x => x.id === $('#selOutlineWork').value); if (!w) return;
+      const t = e.target.closest('[data-ti]'); if (t) { const c = w.chapters[+t.dataset.ti]; c.title = t.value; c.raw = t.value + '\n' + (c.content || ''); reindexChapters(w); return; }
+      const s = e.target.closest('[data-si]'); if (s) { w.chapters[+s.dataset.si].synopsis = s.value; persistWorks(); }
+    });
+    $('#outlineList').addEventListener('change', e => {
+      const w = state.works.find(x => x.id === $('#selOutlineWork').value); if (!w) return;
+      const t = e.target.closest('[data-ti]'); if (t) { const c = w.chapters[+t.dataset.ti]; c.title = t.value.trim() || c.title; c.raw = c.title + '\n' + (c.content || ''); reindexChapters(w); renderOutlineList(); }
+    });
+    $('#outlineList').addEventListener('click', e => {
+      const w = state.works.find(x => x.id === $('#selOutlineWork').value); if (!w) return;
+      const up = e.target.closest('[data-up]'); if (up) { outlineMove(w, +up.dataset.up, +up.dataset.up - 1); return; }
+      const dn = e.target.closest('[data-down]'); if (dn) { outlineMove(w, +dn.dataset.down, +dn.dataset.down + 1); return; }
+      const del = e.target.closest('[data-del]'); if (del) {
+        if (confirm('确定删除该章节？此操作不可恢复。')) { w.chapters.splice(+del.dataset.del, 1); reindexChapters(w); persistWorks(); renderOutlineList(); }
+      }
+    });
+    let _dragIdx = null;
+    $('#outlineList').addEventListener('dragstart', e => { const row = e.target.closest('.chapter-row'); if (!row) return; _dragIdx = +row.dataset.ch; row.classList.add('dragging'); });
+    $('#outlineList').addEventListener('dragend', e => { const row = e.target.closest('.chapter-row'); if (row) row.classList.remove('dragging'); });
+    $('#outlineList').addEventListener('dragover', e => { e.preventDefault(); });
+    $('#outlineList').addEventListener('drop', e => {
+      e.preventDefault();
+      const w = state.works.find(x => x.id === $('#selOutlineWork').value); if (!w || _dragIdx == null) return;
+      const row = e.target.closest('.chapter-row'); if (!row) return;
+      const to = +row.dataset.ch; outlineMove(w, _dragIdx, to); _dragIdx = null;
+    });
+
     // 作品页
     $('#btnAdd').addEventListener('click', () => {
       let text = $('#pasteText').value;
@@ -2033,12 +2407,32 @@ ${relayReq}直接输出续写正文（自然接在前面之后，不要另起重
       state.settings.styleWorkId = $('#selStyleWork').value || null; Store.saveSettings(state.settings);
     });
 
-    // GitHub 同步
-    $('#ghSave').addEventListener('click', () => { const gc = GitHubSync.getCfg(); gc.owner = $('#ghOwner').value.trim(); gc.repo = $('#ghRepo').value.trim(); gc.branch = $('#ghBranch').value.trim() || 'main'; gc.path = $('#ghPath').value.trim() || 'novel-writer-data.json'; gc.token = $('#ghToken').value.trim(); GitHubSync.setCfg(gc); toast('已保存同步设置'); });
-    $('#ghTest').addEventListener('click', async () => { GitHubSync.status('连接测试中…'); const r = await GitHubSync.test(); GitHubSync.status(r.ok ? '✅ 连接成功：' + r.msg : '❌ ' + r.msg); toast(r.ok ? '连接成功' : '连接失败'); });
-    $('#ghPush').addEventListener('click', async () => { GitHubSync.status('上传中…'); const r = await GitHubSync.pushCurrent(); GitHubSync.status(r.ok ? '✅ 已上传到 GitHub' : '❌ ' + r.msg); toast(r.ok ? '已上传' : '上传失败'); });
-    $('#ghPull').addEventListener('click', async () => { GitHubSync.status('拉取合并中…'); const r = await GitHubSync.pullMerge(); GitHubSync.status(r.ok ? '✅ ' + r.msg : '❌ ' + r.msg); if (r.ok) { load(); renderWorks(); renderModels(); renderSettings(); renderFeedback(); renderDrafts(); toast('已合并：' + r.msg); } else toast('拉取失败'); });
+    // GitHub 同步（任何操作前先把输入框内容落盘，避免"填了忘点保存"导致永远提示未配置）
+    const ghSaveFromUI = () => { const gc = GitHubSync.getCfg(); gc.owner = $('#ghOwner').value.trim(); gc.repo = $('#ghRepo').value.trim(); gc.branch = $('#ghBranch').value.trim() || 'main'; gc.path = $('#ghPath').value.trim() || 'novel-writer-data.json'; gc.token = $('#ghToken').value.trim(); GitHubSync.setCfg(gc); };
+    $('#ghSave').addEventListener('click', () => { ghSaveFromUI(); toast('已保存同步设置'); });
+    $('#ghTest').addEventListener('click', async () => { ghSaveFromUI(); GitHubSync.status('连接测试中…'); const r = await GitHubSync.test(); GitHubSync.status(r.ok ? '✅ 连接成功：' + r.msg : '❌ ' + r.msg); toast(r.ok ? '连接成功' : '连接失败'); });
+    $('#ghPush').addEventListener('click', async () => { ghSaveFromUI(); GitHubSync.status('上传中…'); const r = await GitHubSync.pushCurrent(); GitHubSync.status(r.ok ? '✅ 已上传到 GitHub' : '❌ ' + r.msg); toast(r.ok ? '已上传' : '上传失败'); });
+    $('#ghPull').addEventListener('click', async () => { ghSaveFromUI(); GitHubSync.status('拉取合并中…'); const r = await GitHubSync.pullMerge(); GitHubSync.status(r.ok ? '✅ ' + r.msg : '❌ ' + r.msg); if (r.ok) { load(); renderWorks(); renderModels(); renderSettings(); renderFeedback(); renderDrafts(); toast('已合并：' + r.msg); } else toast('拉取失败'); });
     $('#ghAutoBtn').addEventListener('click', () => { const gc = GitHubSync.getCfg(); gc.auto = !gc.auto; GitHubSync.setCfg(gc); $('#ghAutoBtn').textContent = '自动同步：' + (gc.auto ? '开' : '关'); toast('自动同步：' + (gc.auto ? '开' : '关')); });
+    // 一键发布到网页版
+    $('#btnPublish').addEventListener('click', async () => {
+      ghSaveFromUI();
+      const gc = GitHubSync.getCfg();
+      if (!gc.token) { $('#pubStatus').textContent = '❌ 请先在上方的 GitHub 多设备同步里填写并保存 PAT（需 repo 权限）'; toast('请先配置 PAT'); return; }
+      const owner = gc.owner || 'fuduoduo2';
+      const repo = $('#pubRepo').value.trim() || 'novel-web';
+      const branch = $('#pubBranch').value.trim() || 'main';
+      const path = $('#pubPath').value.trim() || 'index.html';
+      const file = $('#pubFile').files[0];
+      if (!file) { $('#pubStatus').textContent = '❌ 请先选择本地 HTML 文件（如 Downloads/index.html）'; toast('请选择 HTML 文件'); return; }
+      try { localStorage.setItem('nw_pub', JSON.stringify({ repo, branch, path })); } catch (e) {}
+      $('#pubStatus').textContent = '读取文件中…';
+      let text; try { text = await file.text(); } catch (e) { $('#pubStatus').textContent = '❌ 读取文件失败：' + e.message; return; }
+      $('#pubStatus').textContent = '发布中（上传到 GitHub）…';
+      const r = await GitHubSync.publish({ owner, repo, branch, path, token: gc.token, text });
+      $('#pubStatus').textContent = r.ok ? ('✅ 已发布到 ' + repo + '/' + path + '，请等 1-2 分钟后强刷网页版（Ctrl+F5 / 无痕窗口 / 网址加 ?v= 时间戳）') : ('❌ ' + r.msg);
+      toast(r.ok ? '发布成功' : '发布失败');
+    });
 
     // 续写页
     $('#btnWrite').addEventListener('click', () => doWrite());
@@ -2054,6 +2448,7 @@ ${relayReq}直接输出续写正文（自然接在前面之后，不要另起重
     renderReqHistory();
     $('#btnStop').addEventListener('click', () => { if (state.abort) state.abort.abort(); });
     $('#btnAdopt').addEventListener('click', adopt);
+    $('#btnSaveDraft').addEventListener('click', saveCurrentToDraft);
     $('#btnSaveDocx').addEventListener('click', exportTxt);
     $('#btnExportAll').addEventListener('click', exportAllTxt);
     $('#btnRedo').addEventListener('click', () => doWrite());
